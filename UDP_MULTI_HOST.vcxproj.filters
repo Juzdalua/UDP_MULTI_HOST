@@ -46,10 +46,13 @@
     <ClInclude Include="Core.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="PacketInfo.h">
+    <ClInclude Include="RecvPacketInfo.h">
       <Filter>Packet</Filter>
     </ClInclude>
     <ClInclude Include="ProcessPacket.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="SendPackerInfo.h">
       <Filter>Packet</Filter>
     </ClInclude>
   </ItemGroup>

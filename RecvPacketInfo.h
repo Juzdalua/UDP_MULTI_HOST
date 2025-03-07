@@ -1,7 +1,7 @@
 #pragma once
 
 #pragma pack(push,1)
-struct PacketHeader
+struct RecvPacketHeader
 {
 	unsigned short sNetVersion;
 	short sMask;

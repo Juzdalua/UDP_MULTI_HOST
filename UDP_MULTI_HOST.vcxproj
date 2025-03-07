@@ -139,8 +139,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h" />
-    <ClInclude Include="PacketInfo.h" />
+    <ClInclude Include="RecvPacketInfo.h" />
     <ClInclude Include="ProcessPacket.h" />
+    <ClInclude Include="SendPackerInfo.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

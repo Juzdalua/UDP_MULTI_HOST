@@ -1,7 +1,7 @@
 #include "ProcessPacket.h"
 #include <vector>
 #include <iostream>
-#include "PacketInfo.h"
+#include "RecvPacketInfo.h"
 
 std::shared_ptr<HandleCore> ProcessPacket::_handleCore = nullptr;
 std::shared_ptr<CabinControlCore> ProcessPacket::_canbinControlCore = nullptr;
@@ -19,16 +19,10 @@ void ProcessPacket::handlePacket(const std::vector<unsigned char>& buffer)
 	std::cout << "sMask: " << sMask << '\n';
 	std::cout << "bSize: " << (int)bSize << '\n';
 
-	/*----------------
-		Test
-	------------------*/
-	_handleCore->sendToHost(buffer);
-	return;
-
 	// 데이터 버퍼 체크
 	if (bSize <= 0) return;
-	std::vector<unsigned char> dataBuffer((int)bSize - sizeof(PacketHeader));
-	std::memcpy(dataBuffer.data(), buffer.data() + 5, (int)bSize - sizeof(PacketHeader));
+	std::vector<unsigned char> dataBuffer((int)bSize - sizeof(RecvPacketHeader));
+	std::memcpy(dataBuffer.data(), buffer.data() + 5, (int)bSize - sizeof(RecvPacketHeader));
 
 	switch (sMask)
 	{
