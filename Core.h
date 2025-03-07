@@ -14,20 +14,22 @@
 
 class Core {
 public:
-    Core(const std::string& name, const std::string& ip, unsigned short port);
-    ~Core();
+    Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+    virtual ~Core();
 
     void start();
     void stop();
-    void sendToHost(const std::vector<unsigned char>& data, const std::string& targetIp, unsigned short targetPort);
+    virtual void sendToHost(const std::vector<unsigned char>& buffer, const std::string& targetIp, unsigned short targetPort);
 
-private:
+protected:
     void receiveLoop();
     void processLoop();
 
     std::string _name;
     std::string _ip;
     unsigned short _port;
+    std::string _clientIp;
+    unsigned short _clientPort;
 
     SOCKET _socket;
 
@@ -39,4 +41,57 @@ private:
     std::condition_variable _queueCv;
 
     std::atomic<bool> _running = false;
+};
+
+/*-----------------
+    Handle Core
+-----------------*/
+struct SendHandlePacket {
+    UINT32 simState;
+    float velocity;
+    float wheelAngleVelocityLF;
+    float wheelAngleVelocityRF;
+    float wheelAngleVelocityLB;
+    float wheelAngleVelocityRB;
+    float targetAngle;
+
+};
+class HandleCore : public Core 
+{
+public:
+    HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+    virtual void sendToHost(const std::vector<unsigned char>& buffer);
+
+private:
+    SendHandlePacket _sendHandlePacket = { 0 };
+};
+
+/*-----------------
+    CabinControl Core
+-----------------*/
+class CabinControlCore : public Core
+{
+public:
+    CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+    virtual void sendToHost(const std::vector<unsigned char>& buffer);
+};
+
+/*-----------------
+    CanbinSwitch Core
+-----------------*/
+class CanbinSwitchCore : public Core
+{
+public:
+    CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+    virtual void sendToHost(const std::vector<unsigned char>& buffer);
+};
+
+/*-----------------
+    Motion Core
+-----------------*/
+class MotionCore : public Core
+{
+public:
+    MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+    virtual void sendToHost(const std::vector<unsigned char>& buffer);
 };

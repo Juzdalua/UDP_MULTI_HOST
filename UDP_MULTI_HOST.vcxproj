@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="ProcessPacket.cpp" />
     <ClCompile Include="UDP_MULTI_HOST.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
@@ -138,6 +139,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h" />
+    <ClInclude Include="PacketInfo.h" />
+    <ClInclude Include="ProcessPacket.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

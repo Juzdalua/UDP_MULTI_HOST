@@ -13,6 +13,9 @@
     <Filter Include="Core">
       <UniqueIdentifier>{f9c8c8f1-4271-4840-b169-e5b226d050ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Packet">
+      <UniqueIdentifier>{1e109c58-e5b5-40f3-8385-6e374962b7a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UDP_MULTI_HOST.cpp">
@@ -23,6 +26,9 @@
     </ClCompile>
     <ClCompile Include="Core.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessPacket.cpp">
+      <Filter>Packet</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +45,12 @@
     </ClInclude>
     <ClInclude Include="Core.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketInfo.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessPacket.h">
+      <Filter>Packet</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

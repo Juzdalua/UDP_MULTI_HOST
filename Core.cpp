@@ -1,8 +1,9 @@
 #include "Core.h"
 #include <iostream>
+#include "ProcessPacket.h"
 
-Core::Core(const std::string& name, const std::string& ip, unsigned short port)
-	: _name(name), _ip(ip), _port(port), _running(false), _socket(INVALID_SOCKET)
+Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
+	: _name(name), _ip(ip), _port(port), _clientIp(clientIp), _clientPort(clientPort), _running(false), _socket(INVALID_SOCKET)
 {
 	std::cout << "[" << _name << "]";
 	std::cout << " UDP Server running on";
@@ -63,14 +64,14 @@ void Core::stop()
 	}
 }
 
-void Core::sendToHost(const std::vector<unsigned char>& data, const std::string& targetIp, unsigned short targetPort)
+void Core::sendToHost(const std::vector<unsigned char>& buffer, const std::string& targetIp, unsigned short targetPort)
 {
 	sockaddr_in targetAddr;
 	targetAddr.sin_family = AF_INET;
 	targetAddr.sin_addr.s_addr = inet_addr(targetIp.c_str());
 	targetAddr.sin_port = htons(targetPort);
 
-	sendto(_socket, (const char*)data.data(), data.size(), 0, (SOCKADDR*)&targetAddr, sizeof(targetAddr));
+	sendto(_socket, reinterpret_cast<const char*>(buffer.data()), buffer.size(), 0, (SOCKADDR*)&targetAddr, sizeof(targetAddr));
 }
 
 void Core::receiveLoop()
@@ -112,16 +113,81 @@ void Core::processLoop()
 			// Example: send to another host
 			//sendToHost(data, "127.0.0.1", 12345);
 
-			unsigned short sNetVersion = *reinterpret_cast<const unsigned short*>(&recvBuffer[0]);
+			ProcessPacket::handlePacket(recvBuffer) ;
+
+			/*unsigned short sNetVersion = *reinterpret_cast<const unsigned short*>(&recvBuffer[0]);
 			short sMask = *reinterpret_cast<const short*>(&recvBuffer[2]);
 			unsigned char bSize = recvBuffer[4];
 
 			std::cout << "bytesTransferred: " << recvBuffer.size() << '\n';
 			std::cout << "Received Header - NetVersion: " << sNetVersion
 				<< ", Mask: " << sMask
-				<< ", bSize: " << (int)bSize << std::endl;
+				<< ", bSize: " << (int)bSize << std::endl;*/
 
 			lock.lock();
 		}
 	}
+}
+
+/*-----------------
+	Handle Core
+-----------------*/
+HandleCore::HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
+	: Core(name, ip, port, clientIp, clientPort)
+{
+}
+
+void HandleCore::sendToHost(const std::vector<unsigned char>& buffer)
+{
+	std::cout << "[SEND] "<< _clientIp.c_str()<<":"<< _clientPort<<'\n';
+	sockaddr_in targetAddr;
+	targetAddr.sin_family = AF_INET;
+	/*targetAddr.sin_addr.s_addr = inet_addr(_clientIp.c_str());
+	targetAddr.sin_port = htons(_clientPort);*/
+	std::string ip = "192.168.10.101";
+	int port = 1997;
+	targetAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+	targetAddr.sin_port = htons(port);
+
+	int a = sendto(_socket, (const char*)buffer.data(), buffer.size(), 0, (SOCKADDR*)&targetAddr, sizeof(targetAddr));
+	if (a == SOCKET_ERROR) {
+		std::cout << "[SEND ERROR] " << WSAGetLastError() << '\n';
+	}
+}
+
+/*-----------------
+	CabinControl Core
+-----------------*/
+CabinControlCore::CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
+	: Core(name, ip, port, clientIp, clientPort)
+{
+
+}
+
+void CabinControlCore::sendToHost(const std::vector<unsigned char>& buffer)
+{
+}
+
+/*-----------------
+	CanbinSwitch Core
+-----------------*/
+CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
+	: Core(name, ip, port, clientIp, clientPort)
+{
+}
+
+void CanbinSwitchCore::sendToHost(const std::vector<unsigned char>& buffer)
+{
+}
+
+/*-----------------
+	Motion Core
+-----------------*/
+MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
+	: Core(name, ip, port, clientIp, clientPort)
+{
+}
+
+void MotionCore::sendToHost(const std::vector<unsigned char>& buffer)
+{
 }
