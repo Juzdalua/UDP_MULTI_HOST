@@ -178,12 +178,12 @@ void Core::handlePacket(const std::vector<unsigned char>& buffer)
 HandleCore::HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
 	: Core(name, ip, port, clientIp, clientPort)
 {
-	_bSize = 33;
+	_bSize = sizeof(SendPacketHeader) + sizeof(SendHandlePacket);
 	_sMask = 0x0011;
 	_tick = 10; // 100hz
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_HANDLE_PORT"));
+	_directSendPort = stoi(Utils::getEnv("UE_RECV_HANDLE_PORT"));
 }
 
 void HandleCore::sendLoop()
@@ -204,13 +204,14 @@ void HandleCore::sendLoop()
 		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
 
 		// 데이터 메모리 복사
-		std::memcpy(buffer.data() + 5, &_sendHandlePacket.simState, sizeof(unsigned __int32));    // 5~8 바이트에 simState
-		std::memcpy(buffer.data() + 9, &_sendHandlePacket.velocity, sizeof(float));               // 9~12 바이트에 velocity
-		std::memcpy(buffer.data() + 13, &_sendHandlePacket.wheelAngleVelocityLF, sizeof(float));  // 13~16 바이트에 wheelAngleVelocityLF
-		std::memcpy(buffer.data() + 17, &_sendHandlePacket.wheelAngleVelocityRF, sizeof(float));  // 17~20 바이트에 wheelAngleVelocityRF
-		std::memcpy(buffer.data() + 21, &_sendHandlePacket.wheelAngleVelocityLB, sizeof(float));  // 21~24 바이트에 wheelAngleVelocityLB
-		std::memcpy(buffer.data() + 25, &_sendHandlePacket.wheelAngleVelocityRB, sizeof(float));  // 25~28 바이트에 wheelAngleVelocityRB
-		std::memcpy(buffer.data() + 29, &_sendHandlePacket.targetAngle, sizeof(float));           // 29~32 바이트에 targetAngle
+		std::memcpy(buffer.data() + 5, &_sendHandlePacket, sizeof(SendHandlePacket));
+		//std::memcpy(buffer.data() + 5, &_sendHandlePacket.simState, sizeof(unsigned __int32));    // 5~8 바이트에 simState
+		//std::memcpy(buffer.data() + 9, &_sendHandlePacket.velocity, sizeof(float));               // 9~12 바이트에 velocity
+		//std::memcpy(buffer.data() + 13, &_sendHandlePacket.wheelAngleVelocityLF, sizeof(float));  // 13~16 바이트에 wheelAngleVelocityLF
+		//std::memcpy(buffer.data() + 17, &_sendHandlePacket.wheelAngleVelocityRF, sizeof(float));  // 17~20 바이트에 wheelAngleVelocityRF
+		//std::memcpy(buffer.data() + 21, &_sendHandlePacket.wheelAngleVelocityLB, sizeof(float));  // 21~24 바이트에 wheelAngleVelocityLB
+		//std::memcpy(buffer.data() + 25, &_sendHandlePacket.wheelAngleVelocityRB, sizeof(float));  // 25~28 바이트에 wheelAngleVelocityRB
+		//std::memcpy(buffer.data() + 29, &_sendHandlePacket.targetAngle, sizeof(float));           // 29~32 바이트에 targetAngle
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
@@ -244,13 +245,13 @@ void HandleCore::handlePacket(const std::vector<unsigned char>& buffer)
 CabinControlCore::CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
 	: Core(name, ip, port, clientIp, clientPort)
 {
-	_bSize = 29;
+	_bSize = sizeof(SendPacketHeader) + sizeof(SendCabinControlPacket);
 	_sMask = 0x0012;
 	_tick = 1000; // 1hz
 	//_tick = 100; // 10hz
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_CABIN_CONTROL_PORT"));
+	_directSendPort = stoi(Utils::getEnv("UE_RECV_CABIN_CONTROL_PORT"));
 }
 
 void CabinControlCore::sendLoop()
@@ -271,16 +272,17 @@ void CabinControlCore::sendLoop()
 		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
 
 		// 데이터 메모리 복사
-		std::memcpy(buffer.data() + 5, &_sendCabinControlPacket.command, sizeof(_sendCabinControlPacket.command));   // 5~6 바이트에 command
-		std::memcpy(buffer.data() + 7, &_sendCabinControlPacket.avtivation, sizeof(_sendCabinControlPacket.avtivation));  // 7~8 바이트에 avtivation
-		std::memcpy(buffer.data() + 9, &_sendCabinControlPacket.handleStrength, sizeof(_sendCabinControlPacket.handleStrength));  // 9~10 바이트에 handleStrength
-		std::memcpy(buffer.data() + 11, &_sendCabinControlPacket.seatBeltStrength, sizeof(_sendCabinControlPacket.seatBeltStrength));  // 11~12 바이트에 seatBeltStrength
-		std::memcpy(buffer.data() + 13, &_sendCabinControlPacket.manual, sizeof(_sendCabinControlPacket.manual));  // 13~14 바이트에 manual
-		std::memcpy(buffer.data() + 15, &_sendCabinControlPacket.height, sizeof(_sendCabinControlPacket.height));   // 15~18 바이트에 height
-		std::memcpy(buffer.data() + 19, &_sendCabinControlPacket.width, sizeof(_sendCabinControlPacket.width));   // 19~22 바이트에 width
-		std::memcpy(buffer.data() + 23, &_sendCabinControlPacket.seatHeight, sizeof(_sendCabinControlPacket.seatHeight)); // 23~26 바이트에 seatHeight
+		std::memcpy(buffer.data() + 5, &_sendCabinControlPacket, sizeof(_sendCabinControlPacket)); 
+		//std::memcpy(buffer.data() + 5, &_sendCabinControlPacket.command, sizeof(_sendCabinControlPacket.command));   // 5~6 바이트에 command
+		//std::memcpy(buffer.data() + 7, &_sendCabinControlPacket.avtivation, sizeof(_sendCabinControlPacket.avtivation));  // 7~8 바이트에 avtivation
+		//std::memcpy(buffer.data() + 9, &_sendCabinControlPacket.handleStrength, sizeof(_sendCabinControlPacket.handleStrength));  // 9~10 바이트에 handleStrength
+		//std::memcpy(buffer.data() + 11, &_sendCabinControlPacket.seatBeltStrength, sizeof(_sendCabinControlPacket.seatBeltStrength));  // 11~12 바이트에 seatBeltStrength
+		//std::memcpy(buffer.data() + 13, &_sendCabinControlPacket.manual, sizeof(_sendCabinControlPacket.manual));  // 13~14 바이트에 manual
+		//std::memcpy(buffer.data() + 15, &_sendCabinControlPacket.height, sizeof(_sendCabinControlPacket.height));   // 15~18 바이트에 height
+		//std::memcpy(buffer.data() + 19, &_sendCabinControlPacket.width, sizeof(_sendCabinControlPacket.width));   // 19~22 바이트에 width
+		//std::memcpy(buffer.data() + 23, &_sendCabinControlPacket.seatHeight, sizeof(_sendCabinControlPacket.seatHeight)); // 23~26 바이트에 seatHeight
 
-		//sendToHost(buffer);
+		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
 }
 
@@ -317,7 +319,7 @@ CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& i
 	_sMask = 0x0013;	
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_CABIN_SWITCH_PORT"));
+	_directSendPort = stoi(Utils::getEnv("UE_RECV_CABIN_SWITCH_PORT"));
 }
 
 void CanbinSwitchCore::handlePacket(const std::vector<unsigned char>& buffer)
@@ -455,16 +457,36 @@ void CanbinSwitchCore::handlePacket(const std::vector<unsigned char>& buffer)
 MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
 	: Core(name, ip, port, clientIp, clientPort)
 {
-	_bSize = 137;
+	_bSize = sizeof(SendPacketHeader) + sizeof(SendMotionPacket);
 	_sMask = 0x0014;
 	_tick = 10; // 100hz
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_MOTION_PORT"));
+	_directSendPort = stoi(Utils::getEnv("UE_RECV_MOTION_PORT"));
 }
 
 void MotionCore::sendLoop()
 {
+	while (_running)
+	{
+		long long now = Utils::GetNowTimeMs();
+		if (now - _lastSendMs < _tick) continue;
+
+		_lastSendMs = now;
+
+		const int bufferSize = sizeof(SendMotionPacket) + sizeof(SendPacketHeader);
+		std::vector<unsigned char> buffer(bufferSize);
+
+		// 헤더 메모리 복사
+		std::memcpy(buffer.data(), &_sNetVersion, sizeof(unsigned short));   // 0~1 바이트에 sNetVersion
+		std::memcpy(buffer.data() + 2, &_sMask, sizeof(unsigned short));      // 2~3 바이트에 sMask
+		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
+
+		// 데이터 메모리 복사
+		std::memcpy(buffer.data() + 5, &_sendMotionPacket, sizeof(SendMotionPacket)); // 5~ 바이트에 SendMotionPacket 전체
+
+		sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+	}
 }
 
 void MotionCore::handlePacket(const std::vector<unsigned char>& buffer)

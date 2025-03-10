@@ -40,6 +40,7 @@ struct SendHandlePacket
 /*------------------------------
     ControlCabin
 ------------------------------*/
+#pragma pack(push, 1) 
 struct SendCabinControlPacket {
     unsigned __int16 command;
     unsigned __int16 avtivation;
@@ -50,11 +51,12 @@ struct SendCabinControlPacket {
     float width;
     float seatHeight;
 };
-
+#pragma pack(pop)
 
 /*------------------------------
     Motion
 ------------------------------*/
+#pragma pack(push, 1) 
 struct SendMotionPacket {
     uint32_t FrameCounter;
     uint32_t motionCommand;
@@ -135,6 +137,7 @@ struct SendMotionPacket {
     float turb10AmpY;
     float turb10AmpZ;
 };
+#pragma pack(pop)
 
 
 /*------------------------------

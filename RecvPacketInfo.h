@@ -9,19 +9,24 @@ struct RecvPacketHeader
 };
 #pragma pack(pop)
 
+#pragma pack(push,1)
 struct SteerPacket {
 	unsigned __int32 status;
 	float steerAngle;
 	float steerAngleRate;
 };
+#pragma pack(pop)
 
+#pragma pack(push,1)
 struct CabinControlPacket {
 	unsigned __int16 status;
 	float carHeight;
 	float carWidth;
 	float seatWidth;
 };
+#pragma pack(pop)
 
+#pragma pack(push,1)
 struct CabinSwitchPacket {
 	unsigned char GearTriger;                // 1: ¾Æ·¡·Î µÎÄ­, 2: ¾Æ·¡·Î ÇÑÄ­, 3: Áß°£, 4: À§·Î ÇÑÄ­, 5: À§·Î µÎÄ­
 	unsigned char GearP;                     // 2: Off, 1: On
@@ -81,7 +86,9 @@ struct CabinSwitchPacket {
 	unsigned char Brakepedal;                // 0~255
 	unsigned char bMask;                     // (unsigned char)0xef
 };
+#pragma pack(pop)
 
+#pragma pack(push,1)
 struct MotionPacket {
 	uint32_t FrameCounter1;
 	uint32_t motionStatus1;
@@ -122,3 +129,4 @@ struct MotionPacket {
 	float analogInput3_1;
 	float analogInput4_1;
 };
+#pragma pack(pop)
