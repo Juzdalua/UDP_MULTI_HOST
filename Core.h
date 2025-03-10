@@ -10,13 +10,19 @@
 #include <atomic>
 #include <winsock2.h>
 
-#include "SendPackerInfo.h"
+#include "SendPacketInfo.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
+enum class PeerType : UINT {
+	DEFAULT = 0,
+	INNO,
+	UE,
+};
+
 class Core {
 public:
-	Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+	Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 	virtual ~Core();
 
 	void start();
@@ -54,6 +60,8 @@ protected:
 	unsigned short _sNetVersion = 2025;
 	unsigned short _sMask = 0x0000;
 	int _bSize = 0;
+
+	PeerType _peerType = PeerType::DEFAULT;
 };
 
 /*-----------------
@@ -62,13 +70,12 @@ protected:
 class HandleCore : public Core
 {
 public:
-	HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+	HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 	virtual void sendLoop();
 
 	virtual void handlePacket(const std::vector<unsigned char>& buffer);
-
-private:
-	SendHandlePacket _sendHandlePacket = { 0 };
+	void handleInnoPacket(const std::vector<unsigned char>& buffer);
+	void handleUePacket(const std::vector<unsigned char>& buffer);
 };
 
 /*-----------------
@@ -77,13 +84,12 @@ private:
 class CabinControlCore : public Core
 {
 public:
-	CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+	CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 	virtual void sendLoop();
 
 	virtual void handlePacket(const std::vector<unsigned char>& buffer);
-
-private:
-	SendCabinControlPacket _sendCabinControlPacket = { 0 };
+	void handleInnoPacket(const std::vector<unsigned char>& buffer);
+	void handleUePacket(const std::vector<unsigned char>& buffer);
 };
 
 /*-----------------
@@ -92,9 +98,11 @@ private:
 class CanbinSwitchCore : public Core
 {
 public:
-	CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+	CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 
 	virtual void handlePacket(const std::vector<unsigned char>& buffer);
+	void handleInnoPacket(const std::vector<unsigned char>& buffer);
+	void handleUePacket(const std::vector<unsigned char>& buffer);
 };
 
 /*-----------------
@@ -103,11 +111,10 @@ public:
 class MotionCore : public Core
 {
 public:
-	MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort);
+	MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 	virtual void sendLoop();
 
 	virtual void handlePacket(const std::vector<unsigned char>& buffer);
-
-private:
-	SendMotionPacket _sendMotionPacket = { 0 };
+	void handleInnoPacket(const std::vector<unsigned char>& buffer);
+	void handleUePacket(const std::vector<unsigned char>& buffer);
 };

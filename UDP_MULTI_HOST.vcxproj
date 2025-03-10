@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="ProcessPacket.cpp" />
+    <ClCompile Include="SendPacketInfo.cpp" />
     <ClCompile Include="UDP_MULTI_HOST.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
@@ -141,7 +142,7 @@
     <ClInclude Include="Core.h" />
     <ClInclude Include="RecvPacketInfo.h" />
     <ClInclude Include="ProcessPacket.h" />
-    <ClInclude Include="SendPackerInfo.h" />
+    <ClInclude Include="SendPacketInfo.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

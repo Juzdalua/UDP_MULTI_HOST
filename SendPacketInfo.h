@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 /*------------------------------
     Header
 ------------------------------*/
@@ -9,15 +11,6 @@ struct SendPacketHeader
 	unsigned short sNetVersion;
 	short sMask;
 	unsigned char bSize;
-};
-#pragma pack(pop)
-
-#pragma pack(push,1)
-struct JsonPacketHeader
-{
-    UINT size;
-    UINT id;
-    UINT seq;
 };
 #pragma pack(pop)
 
@@ -143,3 +136,11 @@ struct SendMotionPacket {
 /*------------------------------
     
 ------------------------------*/
+class CommonPacket
+{
+public:
+    SendHandlePacket _sendHandlePacket = { 0 };
+    SendCabinControlPacket _sendCabinControlPacket = { 0 };
+    SendMotionPacket _sendMotionPacket = { 0 };
+};
+extern std::shared_ptr<CommonPacket> commonPacket;

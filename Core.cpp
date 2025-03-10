@@ -2,9 +2,10 @@
 #include <iostream>
 #include "Utils.h"
 #include "RecvPacketInfo.h"
+#include "SendPacketInfo.h"
 
-Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
-	: _name(name), _ip(ip), _port(port), _scheduledSendIp(clientIp), _scheduledSendPort(clientPort), _running(false), _socket(INVALID_SOCKET)
+Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
+	: _name(name), _ip(ip), _port(port), _scheduledSendIp(clientIp), _scheduledSendPort(clientPort), _peerType(peerType), _running(false), _socket(INVALID_SOCKET)
 {
 	std::cout << "[" << _name << "]";
 	std::cout << " UDP Server running on";
@@ -46,7 +47,10 @@ void Core::start()
 
 	_running.store(true);
 	_receiveThread = std::thread(&Core::receiveLoop, this);
-	_processThread = std::thread(&Core::sendLoop, this);
+	if (_peerType == PeerType::INNO) 
+	{
+		_processThread = std::thread(&Core::sendLoop, this);
+	}
 }
 
 void Core::stop()
@@ -175,15 +179,15 @@ void Core::handlePacket(const std::vector<unsigned char>& buffer)
 /*-----------------
 	Handle Core
 -----------------*/
-HandleCore::HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
-	: Core(name, ip, port, clientIp, clientPort)
+HandleCore::HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
+	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
 	_bSize = sizeof(SendPacketHeader) + sizeof(SendHandlePacket);
 	_sMask = 0x0011;
 	_tick = 10; // 100hz
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_RECV_HANDLE_PORT"));
+	_directSendPort = stoi(Utils::getEnv("UE_HANDLE_PORT"));
 }
 
 void HandleCore::sendLoop()
@@ -196,15 +200,16 @@ void HandleCore::sendLoop()
 		_lastSendMs = now;
 
 		const int bufferSize = sizeof(SendHandlePacket) + sizeof(SendPacketHeader);
-		std::vector<unsigned char> buffer(bufferSize); 
+		std::vector<unsigned char> buffer(bufferSize);
 
 		// 헤더 메모리 복사
 		std::memcpy(buffer.data(), &_sNetVersion, sizeof(unsigned short));   // 0~1 바이트에 sNetVersion
 		std::memcpy(buffer.data() + 2, &_sMask, sizeof(unsigned short));      // 2~3 바이트에 sMask
 		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
-
+		
 		// 데이터 메모리 복사
-		std::memcpy(buffer.data() + 5, &_sendHandlePacket, sizeof(SendHandlePacket));
+		
+		std::memcpy(buffer.data() + 5, &commonPacket->_sendHandlePacket, sizeof(SendHandlePacket));
 		//std::memcpy(buffer.data() + 5, &_sendHandlePacket.simState, sizeof(unsigned __int32));    // 5~8 바이트에 simState
 		//std::memcpy(buffer.data() + 9, &_sendHandlePacket.velocity, sizeof(float));               // 9~12 바이트에 velocity
 		//std::memcpy(buffer.data() + 13, &_sendHandlePacket.wheelAngleVelocityLF, sizeof(float));  // 13~16 바이트에 wheelAngleVelocityLF
@@ -218,6 +223,21 @@ void HandleCore::sendLoop()
 }
 
 void HandleCore::handlePacket(const std::vector<unsigned char>& buffer)
+{
+	switch (_peerType)
+	{
+	case PeerType::DEFAULT:
+		break;
+	case PeerType::INNO:
+		handleInnoPacket(buffer);
+		break;
+	case PeerType::UE:
+		handleUePacket(buffer);
+		break;
+	}
+}
+
+void HandleCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
@@ -234,16 +254,28 @@ void HandleCore::handlePacket(const std::vector<unsigned char>& buffer)
 	}
 	catch (const std::exception& e)
 	{
-		Utils::LogError("HandleCore::handlePacke Parse error: " + std::string(e.what()), "HandleCore::handlePacket");
+		Utils::LogError("HandleCore::handleInnoPacket Parse error: " + std::string(e.what()), "HandleCore::handleInnoPacket");
 	}
+}
 
+void HandleCore::handleUePacket(const std::vector<unsigned char>& buffer)
+{
+	try
+	{
+		commonPacket->_sendHandlePacket;
+		std::memcpy(&commonPacket->_sendHandlePacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendHandlePacket));
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("HandleCore::handleUePacket Parse error: " + std::string(e.what()), "HandleCore::handleUePacket");
+	}
 }
 
 /*-----------------
 	CabinControl Core
 -----------------*/
-CabinControlCore::CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
-	: Core(name, ip, port, clientIp, clientPort)
+CabinControlCore::CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
+	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
 	_bSize = sizeof(SendPacketHeader) + sizeof(SendCabinControlPacket);
 	_sMask = 0x0012;
@@ -251,7 +283,7 @@ CabinControlCore::CabinControlCore(const std::string& name, const std::string& i
 	//_tick = 100; // 10hz
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_RECV_CABIN_CONTROL_PORT"));
+	_directSendPort = stoi(Utils::getEnv("UE_CABIN_CONTROL_PORT"));
 }
 
 void CabinControlCore::sendLoop()
@@ -272,7 +304,7 @@ void CabinControlCore::sendLoop()
 		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
 
 		// 데이터 메모리 복사
-		std::memcpy(buffer.data() + 5, &_sendCabinControlPacket, sizeof(_sendCabinControlPacket)); 
+		std::memcpy(buffer.data() + 5, &commonPacket->_sendCabinControlPacket, sizeof(SendCabinControlPacket));
 		//std::memcpy(buffer.data() + 5, &_sendCabinControlPacket.command, sizeof(_sendCabinControlPacket.command));   // 5~6 바이트에 command
 		//std::memcpy(buffer.data() + 7, &_sendCabinControlPacket.avtivation, sizeof(_sendCabinControlPacket.avtivation));  // 7~8 바이트에 avtivation
 		//std::memcpy(buffer.data() + 9, &_sendCabinControlPacket.handleStrength, sizeof(_sendCabinControlPacket.handleStrength));  // 9~10 바이트에 handleStrength
@@ -287,6 +319,21 @@ void CabinControlCore::sendLoop()
 }
 
 void CabinControlCore::handlePacket(const std::vector<unsigned char>& buffer)
+{
+	switch (_peerType)
+	{
+	case PeerType::DEFAULT:
+		break;
+	case PeerType::INNO:
+		handleInnoPacket(buffer);
+		break;
+	case PeerType::UE:
+		handleUePacket(buffer);
+		break;
+	}
+}
+
+void CabinControlCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
@@ -305,24 +352,52 @@ void CabinControlCore::handlePacket(const std::vector<unsigned char>& buffer)
 	}
 	catch (const std::exception& e)
 	{
-		Utils::LogError("CabinControlCore::handlePacke Parse error: " + std::string(e.what()), "CabinControlCore::handlePacket");
+		Utils::LogError("CabinControlCore::handleInnoPacket Parse error: " + std::string(e.what()), "CabinControlCore::handleInnoPacket");
+	}
+}
+
+void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
+{
+	try
+	{
+		commonPacket->_sendCabinControlPacket;
+		std::memcpy(&commonPacket->_sendCabinControlPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendCabinControlPacket));
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("CabinControlCore::handleUePacket Parse error: " + std::string(e.what()), "CabinControlCore::handleUePacket");
 	}
 }
 
 /*-----------------
 	CanbinSwitch Core
 -----------------*/
-CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
-	: Core(name, ip, port, clientIp, clientPort)
+CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
+	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
 	_bSize = 0;
-	_sMask = 0x0013;	
+	_sMask = 0x0013;
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_RECV_CABIN_SWITCH_PORT"));
+	_directSendPort = stoi(Utils::getEnv("UE_CABIN_SWITCH_PORT"));
 }
 
 void CanbinSwitchCore::handlePacket(const std::vector<unsigned char>& buffer)
+{
+	switch (_peerType)
+	{
+	case PeerType::DEFAULT:
+		break;
+	case PeerType::INNO:
+		handleInnoPacket(buffer);
+		break;
+	case PeerType::UE:
+		handleUePacket(buffer);
+		break;
+	}
+}
+
+void CanbinSwitchCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
@@ -447,22 +522,26 @@ void CanbinSwitchCore::handlePacket(const std::vector<unsigned char>& buffer)
 	}
 	catch (const std::exception& e)
 	{
-		Utils::LogError("CanbinSwitchCore::handlePacke Parse error: " + std::string(e.what()), "CanbinSwitchCore::handlePacket");
+		Utils::LogError("CanbinSwitchCore::handleInnoPacket Parse error: " + std::string(e.what()), "CanbinSwitchCore::handleInnoPacket");
 	}
+}
+
+void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
+{
 }
 
 /*-----------------
 	Motion Core
 -----------------*/
-MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort)
-	: Core(name, ip, port, clientIp, clientPort)
+MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
+	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
 	_bSize = sizeof(SendPacketHeader) + sizeof(SendMotionPacket);
 	_sMask = 0x0014;
 	_tick = 10; // 100hz
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_RECV_MOTION_PORT"));
+	_directSendPort = stoi(Utils::getEnv("UE_MOTION_PORT"));
 }
 
 void MotionCore::sendLoop()
@@ -483,13 +562,28 @@ void MotionCore::sendLoop()
 		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
 
 		// 데이터 메모리 복사
-		std::memcpy(buffer.data() + 5, &_sendMotionPacket, sizeof(SendMotionPacket)); // 5~ 바이트에 SendMotionPacket 전체
+		std::memcpy(buffer.data() + 5, &commonPacket->_sendMotionPacket, sizeof(SendMotionPacket)); // 5~ 바이트에 SendMotionPacket 전체
 
-		sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
 }
 
 void MotionCore::handlePacket(const std::vector<unsigned char>& buffer)
+{
+	switch (_peerType)
+	{
+	case PeerType::DEFAULT:
+		break;
+	case PeerType::INNO:
+		handleInnoPacket(buffer);
+		break;
+	case PeerType::UE:
+		handleUePacket(buffer);
+		break;
+	}
+}
+
+void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
@@ -575,7 +669,20 @@ void MotionCore::handlePacket(const std::vector<unsigned char>& buffer)
 	}
 	catch (const std::exception& e)
 	{
-		Utils::LogError("MotionCore::handlePacke Parse error: " + std::string(e.what()), "MotionCore::handlePacket");
+		Utils::LogError("MotionCore::handleInnoPacket Parse error: " + std::string(e.what()), "MotionCore::handleInnoPacket");
+	}
+}
+
+void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
+{
+	try
+	{
+		commonPacket->_sendMotionPacket;
+		std::memcpy(&commonPacket->_sendMotionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendMotionPacket));
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("MotionCore::handleUePacket Parse error: " + std::string(e.what()), "MotionCore::handleUePacket");
 	}
 }
 

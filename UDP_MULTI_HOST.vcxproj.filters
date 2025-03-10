@@ -30,6 +30,9 @@
     <ClCompile Include="ProcessPacket.cpp">
       <Filter>Packet</Filter>
     </ClCompile>
+    <ClCompile Include="SendPacketInfo.cpp">
+      <Filter>Packet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".env">
@@ -52,7 +55,7 @@
     <ClInclude Include="ProcessPacket.h">
       <Filter>Packet</Filter>
     </ClInclude>
-    <ClInclude Include="SendPackerInfo.h">
+    <ClInclude Include="SendPacketInfo.h">
       <Filter>Packet</Filter>
     </ClInclude>
   </ItemGroup>
