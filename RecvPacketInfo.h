@@ -9,17 +9,17 @@ struct RecvPacketHeader
 };
 #pragma pack(pop)
 
+struct SteerPacket {
+	unsigned __int32 status;
+	float steerAngle;
+	float steerAngleRate;
+};
+
 struct CabinControlPacket {
 	unsigned __int16 status;
 	float carHeight;
 	float carWidth;
 	float seatWidth;
-};
-
-struct SteerPacket {
-	unsigned __int32 status;
-	float steerAngle;
-	float steerAngleRate;
 };
 
 struct CabinSwitchPacket {
@@ -82,3 +82,43 @@ struct CabinSwitchPacket {
 	unsigned char bMask;                     // (unsigned char)0xef
 };
 
+struct MotionPacket {
+	uint32_t FrameCounter1;
+	uint32_t motionStatus1;
+	uint32_t errorLevel1;
+	uint32_t errorCode1;
+	uint32_t ioInfo1;
+
+	float xPosition1;
+	float yPosition1;
+	float zPosition1;
+	float yawPosition1;
+	float pitchPosition1;
+	float rollPosition1;
+
+	float xSpeed1;
+	float ySpeed1;
+	float zSpeed1;
+	float yawSpeed1;
+	float pitchSpeed1;
+	float rollSpeed1;
+
+	float xAcc1;
+	float yAcc1;
+	float zAcc1;
+	float yawAcc1;
+	float pitchAcc1;
+	float rollAcc1;
+
+	float actuator1Length1;
+	float actuator2Length1;
+	float actuator3Length1;
+	float actuator4Length1;
+	float actuator5Length1;
+	float actuator6Length1;
+
+	float analogInput1_1;
+	float analogInput2_1;
+	float analogInput3_1;
+	float analogInput4_1;
+};

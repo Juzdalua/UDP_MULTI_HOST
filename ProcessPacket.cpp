@@ -51,7 +51,7 @@ void ProcessPacket::handleSteerPacket(const std::vector<unsigned char>& buffer)
 	std::cout << " steerAngle: " << steerAngle;
 	std::cout << " steerAngleRate: " << steerAngleRate;
 
-	_handleCore->sendToHost(buffer);
+	//_handleCore->sendToHost(buffer);
 }
 
 void ProcessPacket::handleCabinControlPacket(const std::vector<unsigned char>& buffer)
