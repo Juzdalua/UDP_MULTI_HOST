@@ -47,10 +47,7 @@ void Core::start()
 
 	_running.store(true);
 	_receiveThread = std::thread(&Core::receiveLoop, this);
-	if (_peerType == PeerType::INNO) 
-	{
-		_processThread = std::thread(&Core::sendLoop, this);
-	}
+	if (_peerType == PeerType::INNO)  _processThread = std::thread(&Core::sendLoop, this);
 }
 
 void Core::stop()
@@ -134,7 +131,6 @@ void Core::receiveLoop()
 			std::vector<unsigned char> dataBuffer((int)bSize - sizeof(RecvPacketHeader));
 			std::memcpy(dataBuffer.data(), buffer.data() + 5, (int)bSize - sizeof(RecvPacketHeader));
 
-			//ProcessPacket::handlePacket(buffer);
 			handlePacket(buffer);
 		}
 		catch (const std::exception& e)
@@ -168,8 +164,6 @@ void Core::sendTo(const std::vector<unsigned char>& buffer, const std::string& t
 
 void Core::sendLoop()
 {
-	while (_running) {
-	}
 }
 
 void Core::handlePacket(const std::vector<unsigned char>& buffer)
@@ -186,8 +180,11 @@ HandleCore::HandleCore(const std::string& name, const std::string& ip, unsigned 
 	_sMask = 0x0011;
 	_tick = 10; // 100hz
 
-	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_HANDLE_PORT"));
+	if (_peerType == PeerType::INNO)
+	{
+		_directSendIp = Utils::getEnv("UE_IP");
+		_directSendPort = stoi(Utils::getEnv("UE_HANDLE_PORT"));
+	}
 }
 
 void HandleCore::sendLoop()
@@ -206,9 +203,9 @@ void HandleCore::sendLoop()
 		std::memcpy(buffer.data(), &_sNetVersion, sizeof(unsigned short));   // 0~1 바이트에 sNetVersion
 		std::memcpy(buffer.data() + 2, &_sMask, sizeof(unsigned short));      // 2~3 바이트에 sMask
 		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
-		
+
 		// 데이터 메모리 복사
-		
+
 		std::memcpy(buffer.data() + 5, &commonPacket->_sendHandlePacket, sizeof(SendHandlePacket));
 		//std::memcpy(buffer.data() + 5, &_sendHandlePacket.simState, sizeof(unsigned __int32));    // 5~8 바이트에 simState
 		//std::memcpy(buffer.data() + 9, &_sendHandlePacket.velocity, sizeof(float));               // 9~12 바이트에 velocity
@@ -282,8 +279,11 @@ CabinControlCore::CabinControlCore(const std::string& name, const std::string& i
 	_tick = 1000; // 1hz
 	//_tick = 100; // 10hz
 
-	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_CABIN_CONTROL_PORT"));
+	if (_peerType == PeerType::INNO)
+	{
+		_directSendIp = Utils::getEnv("UE_IP");
+		_directSendPort = stoi(Utils::getEnv("UE_CABIN_CONTROL_PORT"));
+	}
 }
 
 void CabinControlCore::sendLoop()
@@ -378,8 +378,11 @@ CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& i
 	_bSize = 0;
 	_sMask = 0x0013;
 
-	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_CABIN_SWITCH_PORT"));
+	if (_peerType == PeerType::INNO)
+	{
+		_directSendIp = Utils::getEnv("UE_IP");
+		_directSendPort = stoi(Utils::getEnv("UE_CABIN_SWITCH_PORT"));
+	}
 }
 
 void CanbinSwitchCore::handlePacket(const std::vector<unsigned char>& buffer)
@@ -540,8 +543,11 @@ MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned 
 	_sMask = 0x0014;
 	_tick = 10; // 100hz
 
-	_directSendIp = Utils::getEnv("UE_IP");
-	_directSendPort = stoi(Utils::getEnv("UE_MOTION_PORT"));
+	if (_peerType == PeerType::INNO)
+	{
+		_directSendIp = Utils::getEnv("UE_IP");
+		_directSendPort = stoi(Utils::getEnv("UE_MOTION_PORT"));
+	}
 }
 
 void MotionCore::sendLoop()

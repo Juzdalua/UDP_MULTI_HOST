@@ -2,14 +2,13 @@
 #include <memory>
 #include "Utils.h"
 #include "Core.h"
-#include "ProcessPacket.h"
 
 int main()
 {
 	Utils::EnvInit();
+	std::vector<std::shared_ptr<Core>> cores;
 
 	// 호스트 세팅
-	std::vector<std::shared_ptr<Core>> cores;
 	std::string hostIp = Utils::getEnv("HOST_IP");
 	int hostHandlePorts = stoi(Utils::getEnv("HOST_INNO_HANDLE_PORT"));
 	int hostCabinControlPorts = stoi(Utils::getEnv("HOST_INNO_CABIN_CONTROL_PORT"));
@@ -59,17 +58,16 @@ int main()
 	cores.emplace_back(ueCanbinSwitchCore);
 	cores.emplace_back(ueMotionCore);
 
-	/*ProcessPacket::_handleCore = handleCore;
-	ProcessPacket::_canbinControlCore = canbinControlCore;
-	ProcessPacket::_canbinSwitchCore = canbinSwitchCore;
-	ProcessPacket::_motionCore = motionCore;*/
-
 	// 호스트 스레드 구동
 	for (auto& core : cores) {
 		core->start();
 	}
 
-	while (true) {}
+	// 메인스레드 대기
+	while (true)
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(5));
+	}
 
 	// Stop all cores
 	for (auto& core : cores) {
