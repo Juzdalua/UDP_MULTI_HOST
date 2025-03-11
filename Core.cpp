@@ -22,32 +22,40 @@ Core::~Core()
 
 void Core::start()
 {
-	// Initialize socket
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		std::cerr << "WSAStartup failed" << std::endl;
-		return;
+	try
+	{
+		// Initialize socket
+		WSADATA wsaData;
+		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+			std::cerr << "WSAStartup failed" << std::endl;
+			return;
+		}
+
+		_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		if (_socket == INVALID_SOCKET) {
+			std::cerr << "Socket creation failed" << std::endl;
+			return;
+		}
+
+		sockaddr_in serverAddr;
+		serverAddr.sin_family = AF_INET;
+		serverAddr.sin_addr.s_addr = inet_addr(_ip.c_str());
+		serverAddr.sin_port = htons(_port);
+
+		if (bind(_socket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+			std::cerr << "Bind failed" << std::endl;
+			return;
+		}
+
+		_running.store(true);
+		_receiveThread = std::thread(&Core::receiveLoop, this);
+		if (_peerType == PeerType::INNO)  _processThread = std::thread(&Core::sendLoop, this);
 	}
-
-	_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (_socket == INVALID_SOCKET) {
-		std::cerr << "Socket creation failed" << std::endl;
-		return;
+	catch (const std::exception& e)
+	{
+		Utils::LogError("Core start error: " + std::string(e.what()), "Core::start");
 	}
-
-	sockaddr_in serverAddr;
-	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_addr.s_addr = inet_addr(_ip.c_str());
-	serverAddr.sin_port = htons(_port);
-
-	if (bind(_socket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-		std::cerr << "Bind failed" << std::endl;
-		return;
-	}
-
-	_running.store(true);
-	_receiveThread = std::thread(&Core::receiveLoop, this);
-	if (_peerType == PeerType::INNO)  _processThread = std::thread(&Core::sendLoop, this);
+	
 }
 
 void Core::stop()
@@ -63,10 +71,6 @@ void Core::stop()
 		closesocket(_socket);
 		WSACleanup();
 	}
-}
-
-void Core::sendScheduled(const std::vector<unsigned char>& buffer, const std::string& targetIp, unsigned short targetPort)
-{
 }
 
 void Core::receiveLoop()
@@ -160,14 +164,6 @@ void Core::sendTo(const std::vector<unsigned char>& buffer, const std::string& t
 	{
 		Utils::LogError("Core::sendTo Send error: " + std::string(e.what()), "Core::sendToHost");
 	}
-}
-
-void Core::sendLoop()
-{
-}
-
-void Core::handlePacket(const std::vector<unsigned char>& buffer)
-{
 }
 
 /*-----------------
@@ -383,6 +379,10 @@ CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& i
 		_directSendIp = Utils::getEnv("UE_IP");
 		_directSendPort = stoi(Utils::getEnv("UE_CABIN_SWITCH_PORT"));
 	}
+}
+
+void CanbinSwitchCore::sendLoop()
+{
 }
 
 void CanbinSwitchCore::handlePacket(const std::vector<unsigned char>& buffer)

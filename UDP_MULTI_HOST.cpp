@@ -5,7 +5,16 @@
 
 int main()
 {
-	Utils::EnvInit();
+	try
+	{
+		Utils::EnvInit();
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("Main env init error: " + std::string(e.what()), "main");
+		return 0;
+	}
+
 	std::vector<std::shared_ptr<Core>> cores;
 
 	// 호스트 세팅
@@ -28,14 +37,22 @@ int main()
 	std::string motionIp = Utils::getEnv("MOTION_IP");
 	int motionPort = stoi(Utils::getEnv("MOTION_PORT"));
 
-	std::shared_ptr<HandleCore> innoHandleCore = std::make_shared<HandleCore>("INNO_HANDLE", hostIp, hostHandlePorts, handleIp, handlePort, PeerType::INNO);
-	std::shared_ptr<CabinControlCore> innoCanbinControlCore = std::make_shared<CabinControlCore>("INNO_CABIN_CONTROL", hostIp, hostCabinControlPorts, cabinControlIp, cabinControlPort, PeerType::INNO);
-	std::shared_ptr<CanbinSwitchCore> innoCanbinSwitchCore = std::make_shared<CanbinSwitchCore>("INNO_CABIN_SWITCH", hostIp, hostCanbinSwitchPorts, cabinSwitchIp, cabinSwitchPort, PeerType::INNO);
-	std::shared_ptr<MotionCore> innoMotionCore = std::make_shared<MotionCore>("INNO_MOTION", hostIp, hostMotionPorts, motionIp, motionPort, PeerType::INNO);
-	cores.emplace_back(innoHandleCore);
-	cores.emplace_back(innoCanbinControlCore);
-	cores.emplace_back(innoCanbinSwitchCore);
-	cores.emplace_back(innoMotionCore);
+	try
+	{
+		std::shared_ptr<HandleCore> innoHandleCore = std::make_shared<HandleCore>("INNO_HANDLE", hostIp, hostHandlePorts, handleIp, handlePort, PeerType::INNO);
+		std::shared_ptr<CabinControlCore> innoCanbinControlCore = std::make_shared<CabinControlCore>("INNO_CABIN_CONTROL", hostIp, hostCabinControlPorts, cabinControlIp, cabinControlPort, PeerType::INNO);
+		std::shared_ptr<CanbinSwitchCore> innoCanbinSwitchCore = std::make_shared<CanbinSwitchCore>("INNO_CABIN_SWITCH", hostIp, hostCanbinSwitchPorts, cabinSwitchIp, cabinSwitchPort, PeerType::INNO);
+		std::shared_ptr<MotionCore> innoMotionCore = std::make_shared<MotionCore>("INNO_MOTION", hostIp, hostMotionPorts, motionIp, motionPort, PeerType::INNO);
+		cores.emplace_back(innoHandleCore);
+		cores.emplace_back(innoCanbinControlCore);
+		cores.emplace_back(innoCanbinSwitchCore);
+		cores.emplace_back(innoMotionCore);
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("Main inno init error: " + std::string(e.what()), "main");
+		return 0;
+	}
 
 	// UE5 Client 세팅
 	int hostUeHandlePorts = stoi(Utils::getEnv("HOST_UE_HANDLE_PORT"));
@@ -49,14 +66,22 @@ int main()
 	int ueCabinSwitchPort = stoi(Utils::getEnv("UE_CABIN_SWITCH_PORT"));
 	int ueMotionPort = stoi(Utils::getEnv("UE_MOTION_PORT"));
 
-	std::shared_ptr<HandleCore> ueHandleCore = std::make_shared<HandleCore>("UE_HANDLE", hostIp, hostUeHandlePorts, ueIp, ueHandlePort, PeerType::UE);
-	std::shared_ptr<CabinControlCore> ueCanbinControlCore = std::make_shared<CabinControlCore>("UE_CABIN_CONTROL", hostIp, hostUeCabinControlPorts, ueIp, ueCabinControlPort, PeerType::UE);
-	std::shared_ptr<CanbinSwitchCore> ueCanbinSwitchCore = std::make_shared<CanbinSwitchCore>("UE_CABIN_SWITCH", hostIp, hostUeCanbinSwitchPorts, ueIp, ueCabinSwitchPort, PeerType::UE);
-	std::shared_ptr<MotionCore> ueMotionCore = std::make_shared<MotionCore>("UE_MOTION", hostIp, hostUeMotionPorts, ueIp, ueMotionPort, PeerType::UE);
-	cores.emplace_back(ueHandleCore);
-	cores.emplace_back(ueCanbinControlCore);
-	cores.emplace_back(ueCanbinSwitchCore);
-	cores.emplace_back(ueMotionCore);
+	try
+	{
+		std::shared_ptr<HandleCore> ueHandleCore = std::make_shared<HandleCore>("UE_HANDLE", hostIp, hostUeHandlePorts, ueIp, ueHandlePort, PeerType::UE);
+		std::shared_ptr<CabinControlCore> ueCanbinControlCore = std::make_shared<CabinControlCore>("UE_CABIN_CONTROL", hostIp, hostUeCabinControlPorts, ueIp, ueCabinControlPort, PeerType::UE);
+		std::shared_ptr<CanbinSwitchCore> ueCanbinSwitchCore = std::make_shared<CanbinSwitchCore>("UE_CABIN_SWITCH", hostIp, hostUeCanbinSwitchPorts, ueIp, ueCabinSwitchPort, PeerType::UE);
+		std::shared_ptr<MotionCore> ueMotionCore = std::make_shared<MotionCore>("UE_MOTION", hostIp, hostUeMotionPorts, ueIp, ueMotionPort, PeerType::UE);
+		cores.emplace_back(ueHandleCore);
+		cores.emplace_back(ueCanbinControlCore);
+		cores.emplace_back(ueCanbinSwitchCore);
+		cores.emplace_back(ueMotionCore);
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("Main UE init error: " + std::string(e.what()), "main");
+		return 0;
+	}
 
 	// 호스트 스레드 구동
 	for (auto& core : cores) {

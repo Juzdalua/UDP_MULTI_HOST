@@ -30,23 +30,24 @@ public:
 
 protected:
 	void receiveLoop();
-	virtual void sendTo(const std::vector<unsigned char>& buffer, const std::string& targetIp, unsigned short targetPort);
-	virtual void sendLoop();
-	virtual void sendScheduled(const std::vector<unsigned char>& buffer, const std::string& targetIp, unsigned short targetPort);
+	void sendTo(const std::vector<unsigned char>& buffer, const std::string& targetIp, unsigned short targetPort);
+	virtual void sendLoop() = 0;
 
-	virtual void handlePacket(const std::vector<unsigned char>& buffer);
+	virtual void handlePacket(const std::vector<unsigned char>& buffer) = 0;
+	virtual void handleInnoPacket(const std::vector<unsigned char>& buffer) = 0;
+	virtual void handleUePacket(const std::vector<unsigned char>& buffer) = 0;
 
-	std::string _name;
-	std::string _ip;
+	std::string _name = "";
+	std::string _ip = "";
 	unsigned short _port;
 
-	std::string _scheduledSendIp;
-	unsigned short _scheduledSendPort;
+	std::string _scheduledSendIp = "";
+	unsigned short _scheduledSendPort = 0;
 
-	std::string _directSendIp;
-	unsigned short _directSendPort;
+	std::string _directSendIp = "";
+	unsigned short _directSendPort = 0;
 
-	SOCKET _socket;
+	SOCKET _socket = INVALID_SOCKET;
 
 	std::thread _receiveThread;
 	std::thread _processThread;
@@ -71,11 +72,11 @@ class HandleCore : public Core
 {
 public:
 	HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
-	virtual void sendLoop();
+	void sendLoop() override;
 
-	virtual void handlePacket(const std::vector<unsigned char>& buffer);
-	void handleInnoPacket(const std::vector<unsigned char>& buffer);
-	void handleUePacket(const std::vector<unsigned char>& buffer);
+	void handlePacket(const std::vector<unsigned char>& buffer) override;
+	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
+	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
 
 /*-----------------
@@ -85,11 +86,11 @@ class CabinControlCore : public Core
 {
 public:
 	CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
-	virtual void sendLoop();
+	void sendLoop() override;
 
-	virtual void handlePacket(const std::vector<unsigned char>& buffer);
-	void handleInnoPacket(const std::vector<unsigned char>& buffer);
-	void handleUePacket(const std::vector<unsigned char>& buffer);
+	void handlePacket(const std::vector<unsigned char>& buffer) override;
+	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
+	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
 
 /*-----------------
@@ -99,10 +100,11 @@ class CanbinSwitchCore : public Core
 {
 public:
 	CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
+	void sendLoop() override;
 
-	virtual void handlePacket(const std::vector<unsigned char>& buffer);
-	void handleInnoPacket(const std::vector<unsigned char>& buffer);
-	void handleUePacket(const std::vector<unsigned char>& buffer);
+	void handlePacket(const std::vector<unsigned char>& buffer) override;
+	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
+	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
 
 /*-----------------
@@ -112,9 +114,9 @@ class MotionCore : public Core
 {
 public:
 	MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
-	virtual void sendLoop();
+	void sendLoop() override;
 
-	virtual void handlePacket(const std::vector<unsigned char>& buffer);
-	void handleInnoPacket(const std::vector<unsigned char>& buffer);
-	void handleUePacket(const std::vector<unsigned char>& buffer);
+	void handlePacket(const std::vector<unsigned char>& buffer) override;
+	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
+	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
