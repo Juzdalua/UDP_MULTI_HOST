@@ -33,7 +33,7 @@ protected:
 	void sendTo(const std::vector<unsigned char>& buffer, const std::string& targetIp, unsigned short targetPort);
 	virtual void sendLoop() = 0;
 
-	virtual void handlePacket(const std::vector<unsigned char>& buffer) = 0;
+	virtual void handlePacket(const std::vector<unsigned char>& buffer);
 	virtual void handleInnoPacket(const std::vector<unsigned char>& buffer) = 0;
 	virtual void handleUePacket(const std::vector<unsigned char>& buffer) = 0;
 
@@ -74,7 +74,6 @@ public:
 	HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 	void sendLoop() override;
 
-	void handlePacket(const std::vector<unsigned char>& buffer) override;
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
@@ -88,7 +87,6 @@ public:
 	CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 	void sendLoop() override;
 
-	void handlePacket(const std::vector<unsigned char>& buffer) override;
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
@@ -102,7 +100,6 @@ public:
 	CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 	void sendLoop() override;
 
-	void handlePacket(const std::vector<unsigned char>& buffer) override;
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
@@ -116,7 +113,6 @@ public:
 	MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
 	void sendLoop() override;
 
-	void handlePacket(const std::vector<unsigned char>& buffer) override;
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
