@@ -101,7 +101,7 @@ void Core::receiveLoop()
 
 			if (recvLen < sizeof(RecvPacketHeader))
 			{
-				std::cerr << "Data Size Not Enough: received " << recvLen << " bytes" << '\n';
+				std::cerr << "Data Size Not Enough / recvLen: " << recvLen << '\n';
 				continue;
 			}
 		}
@@ -119,16 +119,12 @@ void Core::receiveLoop()
 
 			if ((int)recvPacketHeader.bSize > recvLen)
 			{
-				std::cerr << "Data Size Not Enough: expected " << (int)recvPacketHeader.bSize << " bytes, received " << recvLen << " bytes" << '\n';
+				std::cerr << "Data Size Not Enough / bSize: " << (int)recvPacketHeader.bSize << ", recvLen: " << recvLen << '\n';
 				continue;
 			}
 
-			buffer.resize(recvLen);
-			std::cout << "Received data: " << recvLen << " bytes" << '\n';  // 추가된 로그
-
-			std::cout << "sNetVersion: " << recvPacketHeader.sNetVersion << '\n';
-			std::cout << "sMask: " << recvPacketHeader.sMask << '\n';
-			std::cout << "bSize: " << (int)recvPacketHeader.bSize << '\n';
+			buffer.resize((int)recvPacketHeader.bSize);
+			std::cout << "Recv Len: " << recvLen << " / sNetVersion: " << recvPacketHeader.sNetVersion << " / sMask: " << recvPacketHeader.sMask << " / bSize: " << (int)recvPacketHeader.bSize << '\n';
 
 			// 데이터 버퍼 체크
 			if ((int)recvPacketHeader.bSize <= 0) return;
@@ -154,7 +150,7 @@ void Core::sendTo(const std::vector<unsigned char>& buffer, const std::string& t
 		targetAddr.sin_addr.s_addr = inet_addr(targetIp.c_str());
 		targetAddr.sin_port = htons(targetPort);
 
-		std::cout << "[SEND] " << targetIp << ":" << targetPort << '\n';
+		std::cout << "[SEND] " << _ip << ":" << _port << " [" << _name << "] -> " << targetIp << ":" << targetPort << '\n';
 		int sendToHost = sendto(_socket, (const char*)buffer.data(), buffer.size(), 0, (SOCKADDR*)&targetAddr, sizeof(targetAddr));
 		if (sendToHost == SOCKET_ERROR) {
 			std::cout << "[SEND ERROR] " << WSAGetLastError() << '\n';
