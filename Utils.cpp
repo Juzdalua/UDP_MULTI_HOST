@@ -68,9 +68,9 @@ void Utils::LogError(const std::string& errorMsg, const std::string& functionNam
 	std::ostringstream timeStream;
 	timeStream << std::put_time(&tm, "%H:%M:%S");
 
-	logFile << std::endl;
-	logFile << "[" << timeStream.str() << "] -> [" << functionName << "]" << std::endl;
-	logFile << errorMsg << std::endl;
+	logFile << '\n';
+	logFile << "[" << timeStream.str() << "] -> [" << functionName << "]" << '\n';
+	logFile << errorMsg << '\n';
 	logFile.close();
 }
 

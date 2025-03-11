@@ -26,13 +26,13 @@ void Core::start()
 		// Initialize socket
 		WSADATA wsaData;
 		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-			std::cerr << "WSAStartup failed" << std::endl;
+			std::cerr << "WSAStartup failed" << '\n';
 			return;
 		}
 
 		_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if (_socket == INVALID_SOCKET) {
-			std::cerr << "Socket creation failed" << std::endl;
+			std::cerr << "Socket creation failed" << '\n';
 			return;
 		}
 
@@ -42,7 +42,7 @@ void Core::start()
 		serverAddr.sin_port = htons(_port);
 
 		if (bind(_socket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-			std::cerr << "Bind failed" << std::endl;
+			std::cerr << "Bind failed" << '\n';
 			return;
 		}
 
@@ -54,7 +54,7 @@ void Core::start()
 	{
 		Utils::LogError("Core start error: " + std::string(e.what()), "Core::start");
 	}
-	
+
 }
 
 void Core::stop()
@@ -93,13 +93,15 @@ void Core::receiveLoop()
 				{
 					continue;
 				}*/
-				std::cerr << "Failed to receive data: " << errorCode << std::endl;
+				std::cerr << "Failed to receive data: " << errorCode << '\n';
 				continue;
 			}
 
+			std::cout <<'\n' << "[RECV] " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << '\n';
+
 			if (recvLen < sizeof(RecvPacketHeader))
 			{
-				std::cerr << "Data Size Not Enough: received " << recvLen << " bytes" << std::endl;
+				std::cerr << "Data Size Not Enough: received " << recvLen << " bytes" << '\n';
 				continue;
 			}
 		}
@@ -117,12 +119,12 @@ void Core::receiveLoop()
 
 			if ((int)recvPacketHeader.bSize > recvLen)
 			{
-				std::cerr << "Data Size Not Enough: expected " << (int)recvPacketHeader.bSize << " bytes, received " << recvLen << " bytes" << std::endl;
+				std::cerr << "Data Size Not Enough: expected " << (int)recvPacketHeader.bSize << " bytes, received " << recvLen << " bytes" << '\n';
 				continue;
 			}
 
 			buffer.resize(recvLen);
-			std::cout << std::endl << "Received data: " << recvLen << " bytes" << std::endl;  // 추가된 로그
+			std::cout << "Received data: " << recvLen << " bytes" << '\n';  // 추가된 로그
 
 			std::cout << "sNetVersion: " << recvPacketHeader.sNetVersion << '\n';
 			std::cout << "sMask: " << recvPacketHeader.sMask << '\n';
@@ -147,14 +149,14 @@ void Core::sendTo(const std::vector<unsigned char>& buffer, const std::string& t
 {
 	try
 	{
-		sockaddr_in targetAddr;
+		sockaddr_in targetAddr = { 0 };
 		targetAddr.sin_family = AF_INET;
 		targetAddr.sin_addr.s_addr = inet_addr(targetIp.c_str());
 		targetAddr.sin_port = htons(targetPort);
 
 		std::cout << "[SEND] " << targetIp << ":" << targetPort << '\n';
-		int a = sendto(_socket, (const char*)buffer.data(), buffer.size(), 0, (SOCKADDR*)&targetAddr, sizeof(targetAddr));
-		if (a == SOCKET_ERROR) {
+		int sendToHost = sendto(_socket, (const char*)buffer.data(), buffer.size(), 0, (SOCKADDR*)&targetAddr, sizeof(targetAddr));
+		if (sendToHost == SOCKET_ERROR) {
 			std::cout << "[SEND ERROR] " << WSAGetLastError() << '\n';
 		}
 	}
@@ -214,7 +216,6 @@ void HandleCore::sendLoop()
 		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
 
 		// 데이터 메모리 복사
-
 		std::memcpy(buffer.data() + sizeof(RecvPacketHeader), &commonPacket->_sendHandlePacket, sizeof(SendHandlePacket));
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
@@ -225,16 +226,15 @@ void HandleCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		
 		SteerPacket steerPacket = { 0 };
 		std::memcpy(&steerPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SteerPacket));
 
 		std::cout << " status: " << steerPacket.status;
 		std::cout << " steerAngle: " << steerPacket.steerAngle;
 		std::cout << " steerAngleRate: " << steerPacket.steerAngleRate;
-		std::cout << std::endl;
+		std::cout << '\n';
 
-		//sendTo(buffer, _directSendIp, _directSendPort);
+		sendTo(buffer, _directSendIp, _directSendPort);
 	}
 	catch (const std::exception& e)
 	{
@@ -248,6 +248,13 @@ void HandleCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	{
 		commonPacket->_sendHandlePacket;
 		std::memcpy(&commonPacket->_sendHandlePacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendHandlePacket));
+		/*std::cout<<"simState: " << commonPacket->_sendHandlePacket.simState << '\n';
+		std::cout<<"velocity: " << commonPacket->_sendHandlePacket.velocity << '\n';
+		std::cout<<"targetAngle: " << commonPacket->_sendHandlePacket.targetAngle << '\n';
+		std::cout<<"wheelAngleVelocityLB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLB << '\n';
+		std::cout<<"wheelAngleVelocityLF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLF << '\n';
+		std::cout<<"wheelAngleVelocityRB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRB << '\n';
+		std::cout<<"wheelAngleVelocityRF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRF << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -308,7 +315,7 @@ void CabinControlCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 		std::cout << " carHeight: " << cabinControlPacket.carHeight;
 		std::cout << " carWidth: " << cabinControlPacket.carWidth;
 		std::cout << " seatWidth: " << cabinControlPacket.seatWidth;
-		std::cout << std::endl;
+		std::cout << '\n';
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
@@ -415,7 +422,7 @@ void CanbinSwitchCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 		std::cout << " ACCpedal: " << (int)cabinSwitchPacket.ACCpedal;
 		std::cout << " Brakepedal: " << (int)cabinSwitchPacket.Brakepedal;
 		std::cout << " bMask: " << (int)cabinSwitchPacket.bMask;
-		std::cout << std::endl;
+		std::cout << '\n';
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
@@ -514,7 +521,7 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 		std::cout << "analogInput1_1: " << motionPacket.analogInput1_1 << " ";
 		std::cout << "analogInput2_1: " << motionPacket.analogInput2_1 << " ";
 		std::cout << "analogInput3_1: " << motionPacket.analogInput3_1 << " ";
-		std::cout << "analogInput4_1: " << motionPacket.analogInput4_1 << std::endl;
+		std::cout << "analogInput4_1: " << motionPacket.analogInput4_1 << '\n';
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}

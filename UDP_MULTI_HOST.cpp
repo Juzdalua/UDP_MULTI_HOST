@@ -25,17 +25,17 @@ int main()
 	int hostMotionPorts = stoi(Utils::getEnv("HOST_INNO_MOTION_PORT"));
 
 	// INNO Client 세팅
-	std::string handleIp = Utils::getEnv("HANDLE_IP");
-	int handlePort = stoi(Utils::getEnv("HANDLE_PORT"));
+	std::string handleIp = Utils::getEnv("INNO_HANDLE_IP");
+	int handlePort = stoi(Utils::getEnv("INNO_HANDLE_PORT"));
 
-	std::string cabinControlIp = Utils::getEnv("CABIN_CONTROL_IP");
-	int cabinControlPort = stoi(Utils::getEnv("CABIN_CONTROL_PORT"));
+	std::string cabinControlIp = Utils::getEnv("INNO_CABIN_CONTROL_IP");
+	int cabinControlPort = stoi(Utils::getEnv("INNO_CABIN_CONTROL_PORT"));
 
-	std::string cabinSwitchIp = Utils::getEnv("CABIN_SWITCH_IP");
-	int cabinSwitchPort = stoi(Utils::getEnv("CABIN_SWITCH_PORT"));
+	std::string cabinSwitchIp = Utils::getEnv("INNO_CABIN_SWITCH_IP");
+	int cabinSwitchPort = stoi(Utils::getEnv("INNO_CABIN_SWITCH_PORT"));
 
-	std::string motionIp = Utils::getEnv("MOTION_IP");
-	int motionPort = stoi(Utils::getEnv("MOTION_PORT"));
+	std::string motionIp = Utils::getEnv("INNO_MOTION_IP");
+	int motionPort = stoi(Utils::getEnv("INNO_MOTION_PORT"));
 
 	try
 	{
