@@ -235,15 +235,7 @@ void HandleCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		commonPacket->_sendHandlePacket;
 		std::memcpy(&commonPacket->_sendHandlePacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendHandlePacket));
-		/*std::cout<<"simState: " << commonPacket->_sendHandlePacket.simState << '\n';
-		std::cout<<"velocity: " << commonPacket->_sendHandlePacket.velocity << '\n';
-		std::cout<<"targetAngle: " << commonPacket->_sendHandlePacket.targetAngle << '\n';
-		std::cout<<"wheelAngleVelocityLB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLB << '\n';
-		std::cout<<"wheelAngleVelocityLF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLF << '\n';
-		std::cout<<"wheelAngleVelocityRB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRB << '\n';
-		std::cout<<"wheelAngleVelocityRF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRF << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -309,7 +301,6 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		commonPacket->_sendCabinControlPacket;
 		std::memcpy(&commonPacket->_sendCabinControlPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendCabinControlPacket));
 	}
 	catch (const std::exception& e)
@@ -427,6 +418,14 @@ void CanbinSwitchCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 
 void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
+	try
+	{
+		std::memcpy(&commonPacket->_sendCabinSwitchPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendCabinSwitchPacket));
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("CanbinSwitchCore::handleUePacket Parse error: " + std::string(e.what()), "CanbinSwitchCore::handleUePacket");
+	}
 }
 
 /*-----------------
@@ -519,7 +518,6 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		commonPacket->_sendMotionPacket;
 		std::memcpy(&commonPacket->_sendMotionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendMotionPacket));
 	}
 	catch (const std::exception& e)
