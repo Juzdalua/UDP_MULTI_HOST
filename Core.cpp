@@ -4,6 +4,9 @@
 #include "RecvPacketInfo.h"
 #include "SendPacketInfo.h"
 
+std::unordered_set<std::string> headerIncludeClass = { "INNO_HANDLE", "INNO_CABIN_CONTROL", "INNO_CABIN_SWITCH" };
+std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION" };
+
 Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: _name(name), _ip(ip), _port(port), _scheduledSendIp(clientIp), _scheduledSendPort(clientPort), _peerType(peerType), _running(false), _socket(INVALID_SOCKET)
 {
@@ -74,7 +77,7 @@ void Core::stop()
 
 void Core::receiveLoop()
 {
-	while (_running) 
+	while (_running)
 	{
 		sockaddr_in clientAddr;
 		int clientAddrSize = sizeof(clientAddr);
@@ -85,16 +88,16 @@ void Core::receiveLoop()
 		try
 		{
 			recvLen = recvfrom(_socket, (char*)buffer.data(), buffer.size(), 0, (SOCKADDR*)&clientAddr, &clientAddrSize);
-			if (recvLen == SOCKET_ERROR) 
+			if (recvLen == SOCKET_ERROR)
 			{
 				int errorCode = WSAGetLastError();
-				if (errorCode == WSAEWOULDBLOCK || errorCode == WSAETIMEDOUT || errorCode == WSAECONNRESET) 
+				if (errorCode == WSAEWOULDBLOCK || errorCode == WSAETIMEDOUT || errorCode == WSAECONNRESET)
 				{
 					continue;
 				}
 				/*if (errorCode == 10054)
 				{
-			 		continue;
+					continue;
 				}*/
 				std::cerr << "Failed to receive data: " << errorCode << '\n';
 				continue;
@@ -118,8 +121,15 @@ void Core::receiveLoop()
 		// Parse buffer
 		try
 		{
+			// Header 에러 체크
+			if (headerIncludeClass.find(_name) == headerIncludeClass.end() && headerExcludeClass.find(_name) == headerExcludeClass.end())
+			{
+				std::cerr << "Header unordered_set error" << '\n';
+				continue;
+			}
+
 			// Header 포함 패킷
-			if (_name != "INNO_MOTION")
+			if (headerIncludeClass.find(_name) != headerIncludeClass.end())
 			{
 				RecvPacketHeader recvPacketHeader = { 0 };
 				std::memcpy(&recvPacketHeader, buffer.data(), sizeof(RecvPacketHeader));
@@ -135,16 +145,42 @@ void Core::receiveLoop()
 			}
 
 			// Header 없는 패킷
-			else if(_name == "INNO_MOTION" && typeid(*this) == typeid(MotionCore))
+			else if (headerExcludeClass.find(_name) != headerExcludeClass.end())
 			{
-				MotionCore* motionCore = dynamic_cast<MotionCore*>(this);
-				if (motionCore->_recvPacketSize != recvLen)
+				int recvPacketSize = 0;
+				if (_name == "INNO_MOTION" && typeid(*this) == typeid(MotionCore))
 				{
-					std::cerr << "Data Size Not Enough / bSize: " << (int)motionCore->_recvPacketSize << ", recvLen: " << recvLen << '\n';
+					MotionCore* motionCore = dynamic_cast<MotionCore*>(this);
+					recvPacketSize = motionCore->_recvPacketSize;
+				}
+				else if (_name == "UE_HANDLE" && typeid(*this) == typeid(HandleCore))
+				{
+					HandleCore* handleCore = dynamic_cast<HandleCore*>(this);
+					recvPacketSize = handleCore->_recvPacketSize;
+				}
+				else if (_name == "UE_CABIN_CONTROL" && typeid(*this) == typeid(CabinControlCore))
+				{
+					CabinControlCore* cabinControlCore = dynamic_cast<CabinControlCore*>(this);
+					recvPacketSize = cabinControlCore->_recvPacketSize;
+				}
+				else if (_name == "UE_CABIN_SWITCH" && typeid(*this) == typeid(CanbinSwitchCore))
+				{
+					CanbinSwitchCore* canbinSwitchCore = dynamic_cast<CanbinSwitchCore*>(this);
+					recvPacketSize = canbinSwitchCore->_recvPacketSize;
+				}
+				else if (_name == "UE_MOTION" && typeid(*this) == typeid(MotionCore))
+				{
+					MotionCore* motionCore = dynamic_cast<MotionCore*>(this);
+					recvPacketSize = motionCore->_recvPacketSize;
+				}
+
+				if (recvPacketSize != recvLen)
+				{
+					std::cerr << "Data Size Not Enough [" << _name << "] / bSize: " << recvPacketSize << ", recvLen : " << recvLen << '\n';
 					continue;
 				}
 
-				buffer.resize(motionCore->_recvPacketSize);
+				buffer.resize(recvPacketSize);
 			}
 
 			handlePacket(buffer);
@@ -206,6 +242,10 @@ HandleCore::HandleCore(const std::string& name, const std::string& ip, unsigned 
 		_directSendIp = Utils::getEnv("UE_IP");
 		_directSendPort = stoi(Utils::getEnv("UE_HANDLE_PORT"));
 	}
+	else if (_peerType == PeerType::UE)
+	{
+		_recvPacketSize = sizeof(SendHandlePacket);
+	}
 }
 
 void HandleCore::sendLoop()
@@ -249,7 +289,7 @@ void HandleCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonPacket->_sendHandlePacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendHandlePacket));
+		std::memcpy(&commonPacket->_sendHandlePacket, buffer.data(), sizeof(SendHandlePacket));
 	}
 	catch (const std::exception& e)
 	{
@@ -270,6 +310,10 @@ CabinControlCore::CabinControlCore(const std::string& name, const std::string& i
 	{
 		_directSendIp = Utils::getEnv("UE_IP");
 		_directSendPort = stoi(Utils::getEnv("UE_CABIN_CONTROL_PORT"));
+	}
+	else if (_peerType == PeerType::UE)
+	{
+		_recvPacketSize = sizeof(SendCabinControlPacket);
 	}
 }
 
@@ -315,7 +359,7 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonPacket->_sendCabinControlPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendCabinControlPacket));
+		std::memcpy(&commonPacket->_sendCabinControlPacket, buffer.data(), sizeof(SendCabinControlPacket));
 	}
 	catch (const std::exception& e)
 	{
@@ -335,6 +379,10 @@ CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& i
 	{
 		_directSendIp = Utils::getEnv("UE_IP");
 		_directSendPort = stoi(Utils::getEnv("UE_CABIN_SWITCH_PORT"));
+	}
+	else if (_peerType == PeerType::UE)
+	{
+		_recvPacketSize = sizeof(SendCabinSwitchPacket);
 	}
 }
 
@@ -434,7 +482,7 @@ void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonPacket->_sendCabinSwitchPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendCabinSwitchPacket));
+		std::memcpy(&commonPacket->_sendCabinSwitchPacket, buffer.data(), sizeof(SendCabinSwitchPacket));
 	}
 	catch (const std::exception& e)
 	{
@@ -455,6 +503,10 @@ MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned 
 	{
 		_directSendIp = Utils::getEnv("UE_IP");
 		_directSendPort = stoi(Utils::getEnv("UE_MOTION_PORT"));
+	}
+	else if (_peerType == PeerType::UE)
+	{
+		_recvPacketSize = sizeof(SendMotionPacket);
 	}
 }
 
@@ -533,7 +585,7 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonPacket->_sendMotionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SendMotionPacket));
+		std::memcpy(&commonPacket->_sendMotionPacket, buffer.data(), sizeof(SendMotionPacket));
 	}
 	catch (const std::exception& e)
 	{

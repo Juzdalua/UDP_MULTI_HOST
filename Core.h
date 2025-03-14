@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <atomic>
 #include <winsock2.h>
+#include <unordered_set>
 
 #include "SendPacketInfo.h"
 
@@ -19,6 +20,9 @@ enum class PeerType : UINT {
 	INNO,
 	UE,
 };
+
+extern std::unordered_set<std::string> headerIncludeClass;
+extern std::unordered_set<std::string> headerExcludeClass;
 
 class Core {
 public:
@@ -60,6 +64,9 @@ protected:
 	int _tick = 0;
 
 	PeerType _peerType = PeerType::DEFAULT;
+
+public:
+	int _recvPacketSize = 0;
 };
 
 /*-----------------
@@ -111,8 +118,5 @@ public:
 	void sendLoop() override;
 
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
-	void handleUePacket(const std::vector<unsigned char>& buffer) override;
-
-public:
-	int _recvPacketSize = 0;
+	void handleUePacket(const std::vector<unsigned char>& buffer) override;	
 };
