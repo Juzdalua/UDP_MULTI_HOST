@@ -55,6 +55,7 @@ protected:
 	std::atomic<bool> _running = false;
 
 protected:
+	
 	long long _lastSendMs = 0;
 	int _tick = 0;
 
@@ -111,4 +112,7 @@ public:
 
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
+
+public:
+	int _recvPacketSize = 0;
 };

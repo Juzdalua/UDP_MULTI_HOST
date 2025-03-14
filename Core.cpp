@@ -74,8 +74,8 @@ void Core::stop()
 
 void Core::receiveLoop()
 {
-	while (_running) {
-
+	while (_running) 
+	{
 		sockaddr_in clientAddr;
 		int clientAddrSize = sizeof(clientAddr);
 		std::vector<unsigned char> buffer(1024);
@@ -85,14 +85,16 @@ void Core::receiveLoop()
 		try
 		{
 			recvLen = recvfrom(_socket, (char*)buffer.data(), buffer.size(), 0, (SOCKADDR*)&clientAddr, &clientAddrSize);
-			if (recvLen == SOCKET_ERROR) {
+			if (recvLen == SOCKET_ERROR) 
+			{
 				int errorCode = WSAGetLastError();
-				if (errorCode == WSAEWOULDBLOCK || errorCode == WSAETIMEDOUT || errorCode == WSAECONNRESET) {
+				if (errorCode == WSAEWOULDBLOCK || errorCode == WSAETIMEDOUT || errorCode == WSAECONNRESET) 
+				{
 					continue;
 				}
 				/*if (errorCode == 10054)
 				{
-					continue;
+			 		continue;
 				}*/
 				std::cerr << "Failed to receive data: " << errorCode << '\n';
 				continue;
@@ -116,22 +118,34 @@ void Core::receiveLoop()
 		// Parse buffer
 		try
 		{
-			RecvPacketHeader recvPacketHeader = { 0 };
-			std::memcpy(&recvPacketHeader, buffer.data(), sizeof(RecvPacketHeader));
-
-			if ((int)recvPacketHeader.bSize > recvLen)
+			// Header 포함 패킷
+			if (_name != "INNO_MOTION")
 			{
-				std::cerr << "Data Size Not Enough / bSize: " << (int)recvPacketHeader.bSize << ", recvLen: " << recvLen << '\n';
-				continue;
+				RecvPacketHeader recvPacketHeader = { 0 };
+				std::memcpy(&recvPacketHeader, buffer.data(), sizeof(RecvPacketHeader));
+
+				if ((int)recvPacketHeader.bSize != recvLen)
+				{
+					std::cerr << "Data Size Not Enough / bSize: " << (int)recvPacketHeader.bSize << ", recvLen: " << recvLen << '\n';
+					continue;
+				}
+
+				buffer.resize((int)recvPacketHeader.bSize);
+				std::cout << "Recv Len: " << recvLen << " / sNetVersion: " << recvPacketHeader.sNetVersion << " / sMask: " << recvPacketHeader.sMask << " / bSize: " << (int)recvPacketHeader.bSize << '\n';
 			}
 
-			buffer.resize((int)recvPacketHeader.bSize);
-			std::cout << "Recv Len: " << recvLen << " / sNetVersion: " << recvPacketHeader.sNetVersion << " / sMask: " << recvPacketHeader.sMask << " / bSize: " << (int)recvPacketHeader.bSize << '\n';
+			// Header 없는 패킷
+			else if(_name == "INNO_MOTION" && typeid(*this) == typeid(MotionCore))
+			{
+				MotionCore* motionCore = dynamic_cast<MotionCore*>(this);
+				if (motionCore->_recvPacketSize != recvLen)
+				{
+					std::cerr << "Data Size Not Enough / bSize: " << (int)motionCore->_recvPacketSize << ", recvLen: " << recvLen << '\n';
+					continue;
+				}
 
-			// 데이터 버퍼 체크
-			if ((int)recvPacketHeader.bSize <= 0) return;
-			std::vector<unsigned char> dataBuffer((int)recvPacketHeader.bSize - sizeof(RecvPacketHeader));
-			std::memcpy(dataBuffer.data(), buffer.data() + sizeof(RecvPacketHeader), (int)recvPacketHeader.bSize - sizeof(RecvPacketHeader));
+				buffer.resize(motionCore->_recvPacketSize);
+			}
 
 			handlePacket(buffer);
 		}
@@ -336,7 +350,7 @@ void CanbinSwitchCore::sendLoop()
 		const int bufferSize = sizeof(SendCabinSwitchPacket);
 		std::vector<unsigned char> buffer(bufferSize);
 
-		std::memcpy(buffer.data(), &commonPacket->_sendCabinSwitchPacket, sizeof(SendCabinControlPacket));
+		std::memcpy(buffer.data(), &commonPacket->_sendCabinSwitchPacket, sizeof(SendCabinSwitchPacket));
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
@@ -435,6 +449,7 @@ MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned 
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
 	_tick = 10; // 100hz
+	_recvPacketSize = sizeof(MotionPacket);
 
 	if (_peerType == PeerType::INNO)
 	{
@@ -465,7 +480,7 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		MotionPacket motionPacket = { 0 };
-		std::memcpy(&motionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(MotionPacket));
+		std::memcpy(&motionPacket, buffer.data(), sizeof(MotionPacket));
 
 		std::cout << "FrameCounter1: " << motionPacket.FrameCounter1 << " ";
 		std::cout << "motionStatus1: " << motionPacket.motionStatus1 << " ";
