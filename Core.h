@@ -58,10 +58,6 @@ protected:
 	long long _lastSendMs = 0;
 	int _tick = 0;
 
-	unsigned short _sNetVersion = 2025;
-	unsigned short _sMask = 0x0000;
-	int _bSize = 0;
-
 	PeerType _peerType = PeerType::DEFAULT;
 };
 

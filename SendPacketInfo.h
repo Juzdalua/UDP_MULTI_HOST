@@ -3,18 +3,6 @@
 #include <memory>
 
 /*------------------------------
-    Header
-------------------------------*/
-#pragma pack(push,1)
-struct SendPacketHeader
-{
-	unsigned short sNetVersion;
-	short sMask;
-	unsigned char bSize;
-};
-#pragma pack(pop)
-
-/*------------------------------
     Handle
 ------------------------------*/
 #pragma pack(push, 1)
@@ -31,7 +19,7 @@ struct SendHandlePacket
 #pragma pack(pop)
 
 /*------------------------------
-    ControlCabin
+    CabinControl
 ------------------------------*/
 #pragma pack(push, 1) 
 struct SendCabinControlPacket {
@@ -43,6 +31,15 @@ struct SendCabinControlPacket {
     float height;
     float width;
     float seatHeight;
+};
+#pragma pack(pop)
+
+/*------------------------------
+    CabinSwitch
+------------------------------*/
+#pragma pack(push, 1) 
+struct SendCabinSwitchPacket {
+    unsigned char currentGear;
 };
 #pragma pack(pop)
 
@@ -141,6 +138,7 @@ class CommonPacket
 public:
     SendHandlePacket _sendHandlePacket = { 0 };
     SendCabinControlPacket _sendCabinControlPacket = { 0 };
+    SendCabinSwitchPacket _sendCabinSwitchPacket = { 0 };
     SendMotionPacket _sendMotionPacket = { 0 };
 };
 extern std::shared_ptr<CommonPacket> commonPacket;

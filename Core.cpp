@@ -185,8 +185,6 @@ void Core::handlePacket(const std::vector<unsigned char>& buffer)
 HandleCore::HandleCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
-	_bSize = sizeof(SendPacketHeader) + sizeof(SendHandlePacket);
-	_sMask = 0x0011;
 	_tick = 10; // 100hz
 
 	if (_peerType == PeerType::INNO)
@@ -205,16 +203,9 @@ void HandleCore::sendLoop()
 
 		_lastSendMs = now;
 
-		const int bufferSize = sizeof(SendHandlePacket) + sizeof(SendPacketHeader);
+		const int bufferSize = sizeof(SendHandlePacket);
 		std::vector<unsigned char> buffer(bufferSize);
-
-		// 헤더 메모리 복사
-		std::memcpy(buffer.data(), &_sNetVersion, sizeof(unsigned short));   // 0~1 바이트에 sNetVersion
-		std::memcpy(buffer.data() + 2, &_sMask, sizeof(unsigned short));      // 2~3 바이트에 sMask
-		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
-
-		// 데이터 메모리 복사
-		std::memcpy(buffer.data() + sizeof(RecvPacketHeader), &commonPacket->_sendHandlePacket, sizeof(SendHandlePacket));
+		std::memcpy(buffer.data(), &commonPacket->_sendHandlePacket, sizeof(SendHandlePacket));
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
@@ -266,8 +257,6 @@ void HandleCore::handleUePacket(const std::vector<unsigned char>& buffer)
 CabinControlCore::CabinControlCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
-	_bSize = sizeof(SendPacketHeader) + sizeof(SendCabinControlPacket);
-	_sMask = 0x0012;
 	_tick = 1000; // 1hz
 	//_tick = 100; // 10hz
 
@@ -287,16 +276,9 @@ void CabinControlCore::sendLoop()
 
 		_lastSendMs = now;
 
-		const int bufferSize = sizeof(SendCabinControlPacket) + sizeof(SendPacketHeader);
+		const int bufferSize = sizeof(SendCabinControlPacket);
 		std::vector<unsigned char> buffer(bufferSize);
-
-		// 헤더 메모리 복사
-		std::memcpy(buffer.data(), &_sNetVersion, sizeof(unsigned short));   // 0~1 바이트에 sNetVersion
-		std::memcpy(buffer.data() + 2, &_sMask, sizeof(unsigned short));      // 2~3 바이트에 sMask
-		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
-
-		// 데이터 메모리 복사
-		std::memcpy(buffer.data() + sizeof(RecvPacketHeader), &commonPacket->_sendCabinControlPacket, sizeof(SendCabinControlPacket));
+		std::memcpy(buffer.data(), &commonPacket->_sendCabinControlPacket, sizeof(SendCabinControlPacket));
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
@@ -342,8 +324,7 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
-	_bSize = 0;
-	_sMask = 0x0013;
+	_tick = 10;
 
 	if (_peerType == PeerType::INNO)
 	{
@@ -354,6 +335,20 @@ CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& i
 
 void CanbinSwitchCore::sendLoop()
 {
+	while (_running)
+	{
+		long long now = Utils::GetNowTimeMs();
+		if (now - _lastSendMs < _tick) continue;
+
+		_lastSendMs = now;
+
+		const int bufferSize = sizeof(SendCabinSwitchPacket);
+		std::vector<unsigned char> buffer(bufferSize);
+
+		std::memcpy(buffer.data(), &commonPacket->_sendCabinSwitchPacket, sizeof(SendCabinControlPacket));
+
+		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+	}
 }
 
 void CanbinSwitchCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
@@ -440,8 +435,6 @@ void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
 MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
-	_bSize = sizeof(SendPacketHeader) + sizeof(SendMotionPacket);
-	_sMask = 0x0014;
 	_tick = 10; // 100hz
 
 	if (_peerType == PeerType::INNO)
@@ -460,16 +453,9 @@ void MotionCore::sendLoop()
 
 		_lastSendMs = now;
 
-		const int bufferSize = sizeof(SendMotionPacket) + sizeof(SendPacketHeader);
+		const int bufferSize = sizeof(SendMotionPacket);
 		std::vector<unsigned char> buffer(bufferSize);
-
-		// 헤더 메모리 복사
-		std::memcpy(buffer.data(), &_sNetVersion, sizeof(unsigned short));   // 0~1 바이트에 sNetVersion
-		std::memcpy(buffer.data() + 2, &_sMask, sizeof(unsigned short));      // 2~3 바이트에 sMask
-		std::memcpy(buffer.data() + 4, &_bSize, sizeof(unsigned char));       // 4~5 바이트에 bSize
-
-		// 데이터 메모리 복사
-		std::memcpy(buffer.data() + sizeof(RecvPacketHeader), &commonPacket->_sendMotionPacket, sizeof(SendMotionPacket)); // 5~ 바이트에 SendMotionPacket 전체
+		std::memcpy(buffer.data(), &commonPacket->_sendMotionPacket, sizeof(SendMotionPacket));
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
