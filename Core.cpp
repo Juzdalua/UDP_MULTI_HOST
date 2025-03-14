@@ -81,6 +81,7 @@ void Core::receiveLoop()
 		std::vector<unsigned char> buffer(1024);
 		int recvLen = 0;
 
+		// recv logic
 		try
 		{
 			recvLen = recvfrom(_socket, (char*)buffer.data(), buffer.size(), 0, (SOCKADDR*)&clientAddr, &clientAddrSize);
@@ -112,6 +113,7 @@ void Core::receiveLoop()
 			continue;
 		}
 
+		// Parse buffer
 		try
 		{
 			RecvPacketHeader recvPacketHeader = { 0 };
