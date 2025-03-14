@@ -105,10 +105,13 @@ void Core::receiveLoop()
 
 			std::cout << '\n' << "[RECV] " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << " -> " << _ip << ":" << _port << " [" << _name << "]" << '\n';
 
-			if (recvLen < sizeof(RecvPacketHeader))
+			if (headerIncludeClass.find(_name) != headerIncludeClass.end())
 			{
-				std::cerr << "Data Size Not Enough / recvLen: " << recvLen << '\n';
-				continue;
+				if (recvLen < sizeof(RecvPacketHeader))
+				{
+					std::cerr << "Data Size Not Enough / recvLen: " << recvLen << '\n';
+					continue;
+				}
 			}
 		}
 		catch (const std::exception& e)
@@ -176,7 +179,7 @@ void Core::receiveLoop()
 
 				if (recvPacketSize != recvLen)
 				{
-					std::cerr << "Data Size Not Enough [" << _name << "] / bSize: " << recvPacketSize << ", recvLen : " << recvLen << '\n';
+					std::cerr << "Data Size Not Enough [" << _name << "] / recvPacketSize: " << recvPacketSize << ", recvLen : " << recvLen << '\n';
 					continue;
 				}
 
@@ -289,7 +292,15 @@ void HandleCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
+		std::cout << "dddddddddddddddddddddddddd" << '\n';
 		std::memcpy(&commonPacket->_sendHandlePacket, buffer.data(), sizeof(SendHandlePacket));
+		std::cout << "simState: " << commonPacket->_sendHandlePacket.simState << '\n';
+		std::cout << "velocity: " << commonPacket->_sendHandlePacket.velocity << '\n';
+		std::cout << "wheelAngleVelocityLF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLF << '\n';
+		std::cout << "wheelAngleVelocityRF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRF << '\n';
+		std::cout << "wheelAngleVelocityLB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLB << '\n';
+		std::cout << "wheelAngleVelocityRB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRB << '\n';
+		std::cout << "targetAngle: " << commonPacket->_sendHandlePacket.targetAngle << '\n';
 	}
 	catch (const std::exception& e)
 	{
@@ -360,6 +371,8 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		std::memcpy(&commonPacket->_sendCabinControlPacket, buffer.data(), sizeof(SendCabinControlPacket));
+		std::cout << "command: " << commonPacket->_sendCabinControlPacket.command << '\n';
+		std::cout << "seatHeight: " << commonPacket->_sendCabinControlPacket.seatHeight << '\n';
 	}
 	catch (const std::exception& e)
 	{
@@ -483,6 +496,7 @@ void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		std::memcpy(&commonPacket->_sendCabinSwitchPacket, buffer.data(), sizeof(SendCabinSwitchPacket));
+		std::cout << "Current Gear: " << commonPacket->_sendCabinSwitchPacket.currentGear << '\n';
 	}
 	catch (const std::exception& e)
 	{
@@ -586,6 +600,8 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		std::memcpy(&commonPacket->_sendMotionPacket, buffer.data(), sizeof(SendMotionPacket));
+		std::cout << "FrameCounter: " << commonPacket->_sendMotionPacket.FrameCounter << '\n';
+		std::cout << "turb10AmpZ: " << commonPacket->_sendMotionPacket.turb10AmpZ << '\n';
 	}
 	catch (const std::exception& e)
 	{
