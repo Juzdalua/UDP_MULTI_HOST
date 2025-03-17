@@ -58,6 +58,7 @@ struct CabinSwitchPacket {
 	unsigned char LeftN;                     // 0: Off, 1: On
 	unsigned char RightN;                    // 0: Off, 1: On
 	unsigned char HOD_Dir_Status;            // 0: 미감지, 1~10 (스티어링 감지)
+	unsigned char Horn;                   // 0: Off, 1: On
 	unsigned char FWasher;                   // 0: Off, 1: On
 	unsigned char Parking;                   // 0: Off, 1: pull, 2: push
 	unsigned char SeatBelt1;                 // 0: Off, 1: On
