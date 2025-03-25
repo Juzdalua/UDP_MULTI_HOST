@@ -125,9 +125,9 @@ struct MotionPacket {
 	float actuator5Length;
 	float actuator6Length;
 
-	float analogInput;
-	float analogInput;
-	float analogInput;
-	float analogInput;
+	float analogInput1;
+	float analogInput2;
+	float analogInput3;
+	float analogInput4;
 };
 #pragma pack(pop)

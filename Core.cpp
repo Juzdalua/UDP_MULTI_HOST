@@ -495,7 +495,7 @@ void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		std::memcpy(&commonPacket->_sendCabinSwitchPacket, buffer.data(), sizeof(SendCabinSwitchPacket));
-		std::cout << "Current Gear: " << commonPacket->_sendCabinSwitchPacket.currentGear << '\n';
+		//std::cout << "Current Gear: " << commonPacket->_sendCabinSwitchPacket.currentGear << '\n';
 	}
 	catch (const std::exception& e)
 	{
@@ -582,10 +582,10 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 		std::cout << "actuator5Length1: " << motionPacket.actuator5Length << " ";
 		std::cout << "actuator6Length1: " << motionPacket.actuator6Length << " ";
 
-		std::cout << "analogInput1_1: " << motionPacket.analogInput << " ";
-		std::cout << "analogInput2_1: " << motionPacket.analogInput << " ";
-		std::cout << "analogInput3_1: " << motionPacket.analogInput << " ";
-		std::cout << "analogInput4_1: " << motionPacket.analogInput << '\n';*/
+		std::cout << "analogInput1_1: " << motionPacket.analogInput1 << " ";
+		std::cout << "analogInput2_1: " << motionPacket.analogInput2 << " ";
+		std::cout << "analogInput3_1: " << motionPacket.analogInput3 << " ";
+		std::cout << "analogInput4_1: " << motionPacket.analogInput4 << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
@@ -600,8 +600,8 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		std::memcpy(&commonPacket->_sendMotionPacket, buffer.data(), sizeof(SendMotionPacket));
-		std::cout << "FrameCounter: " << commonPacket->_sendMotionPacket.FrameCounter << '\n';
-		std::cout << "turb10AmpZ: " << commonPacket->_sendMotionPacket.turb10AmpZ << '\n';
+		/*std::cout << "FrameCounter: " << commonPacket->_sendMotionPacket.FrameCounter << '\n';
+		std::cout << "turb10AmpZ: " << commonPacket->_sendMotionPacket.turb10AmpZ << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
