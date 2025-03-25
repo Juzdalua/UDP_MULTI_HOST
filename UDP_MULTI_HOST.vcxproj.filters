@@ -30,6 +30,9 @@
     <ClCompile Include="SendPacketInfo.cpp">
       <Filter>Packet</Filter>
     </ClCompile>
+    <ClCompile Include="RecvPacketInfo.cpp">
+      <Filter>Packet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".env">

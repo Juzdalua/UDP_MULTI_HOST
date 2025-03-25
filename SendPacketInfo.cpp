@@ -1,3 +1,3 @@
 #include "SendPacketInfo.h"
 
-std::shared_ptr<CommonPacket> commonPacket = std::make_shared<CommonPacket>();
+std::shared_ptr<CommonSendPacket> commonSendPacket = std::make_shared<CommonSendPacket>();

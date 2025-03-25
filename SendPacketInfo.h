@@ -1,4 +1,5 @@
 #pragma once
+//#include "RecvPacketInfo.h"
 
 #include <memory>
 
@@ -133,7 +134,7 @@ struct SendMotionPacket {
 /*------------------------------
     
 ------------------------------*/
-class CommonPacket
+class CommonSendPacket
 {
 public:
     SendHandlePacket _sendHandlePacket = { 0 };
@@ -141,4 +142,4 @@ public:
     SendCabinSwitchPacket _sendCabinSwitchPacket = { 0 };
     SendMotionPacket _sendMotionPacket = { 0 };
 };
-extern std::shared_ptr<CommonPacket> commonPacket;
+extern std::shared_ptr<CommonSendPacket> commonSendPacket;

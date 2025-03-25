@@ -262,7 +262,7 @@ void HandleCore::sendLoop()
 
 		const int bufferSize = sizeof(SendHandlePacket);
 		std::vector<unsigned char> buffer(bufferSize);
-		std::memcpy(buffer.data(), &commonPacket->_sendHandlePacket, sizeof(SendHandlePacket));
+		std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
@@ -292,14 +292,14 @@ void HandleCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonPacket->_sendHandlePacket, buffer.data(), sizeof(SendHandlePacket));
-		/*std::cout << "simState: " << commonPacket->_sendHandlePacket.simState << '\n';
-		std::cout << "velocity: " << commonPacket->_sendHandlePacket.velocity << '\n';
-		std::cout << "wheelAngleVelocityLF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLF << '\n';
-		std::cout << "wheelAngleVelocityRF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRF << '\n';
-		std::cout << "wheelAngleVelocityLB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLB << '\n';
-		std::cout << "wheelAngleVelocityRB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRB << '\n';
-		std::cout << "targetAngle: " << commonPacket->_sendHandlePacket.targetAngle << '\n';*/
+		std::memcpy(&commonSendPacket->_sendHandlePacket, buffer.data(), sizeof(SendHandlePacket));
+		/*std::cout << "simState: " << commonSendPacket->_sendHandlePacket.simState << '\n';
+		std::cout << "velocity: " << commonSendPacket->_sendHandlePacket.velocity << '\n';
+		std::cout << "wheelAngleVelocityLF: " << commonSendPacket->_sendHandlePacket.wheelAngleVelocityLF << '\n';
+		std::cout << "wheelAngleVelocityRF: " << commonSendPacket->_sendHandlePacket.wheelAngleVelocityRF << '\n';
+		std::cout << "wheelAngleVelocityLB: " << commonSendPacket->_sendHandlePacket.wheelAngleVelocityLB << '\n';
+		std::cout << "wheelAngleVelocityRB: " << commonSendPacket->_sendHandlePacket.wheelAngleVelocityRB << '\n';
+		std::cout << "targetAngle: " << commonSendPacket->_sendHandlePacket.targetAngle << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -338,7 +338,7 @@ void CabinControlCore::sendLoop()
 
 		const int bufferSize = sizeof(SendCabinControlPacket);
 		std::vector<unsigned char> buffer(bufferSize);
-		std::memcpy(buffer.data(), &commonPacket->_sendCabinControlPacket, sizeof(SendCabinControlPacket));
+		std::memcpy(buffer.data(), &commonSendPacket->_sendCabinControlPacket, sizeof(SendCabinControlPacket));
 
 		sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
@@ -369,9 +369,9 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonPacket->_sendCabinControlPacket, buffer.data(), sizeof(SendCabinControlPacket));
-		/*std::cout << "command: " << commonPacket->_sendCabinControlPacket.command << '\n';
-		std::cout << "seatHeight: " << commonPacket->_sendCabinControlPacket.seatHeight << '\n';*/
+		std::memcpy(&commonSendPacket->_sendCabinControlPacket, buffer.data(), sizeof(SendCabinControlPacket));
+		/*std::cout << "command: " << commonSendPacket->_sendCabinControlPacket.command << '\n';
+		std::cout << "seatHeight: " << commonSendPacket->_sendCabinControlPacket.seatHeight << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -410,7 +410,7 @@ void CanbinSwitchCore::sendLoop()
 		const int bufferSize = sizeof(SendCabinSwitchPacket);
 		std::vector<unsigned char> buffer(bufferSize);
 
-		std::memcpy(buffer.data(), &commonPacket->_sendCabinSwitchPacket, sizeof(SendCabinSwitchPacket));
+		std::memcpy(buffer.data(), &commonSendPacket->_sendCabinSwitchPacket, sizeof(SendCabinSwitchPacket));
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
@@ -494,8 +494,8 @@ void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonPacket->_sendCabinSwitchPacket, buffer.data(), sizeof(SendCabinSwitchPacket));
-		//std::cout << "Current Gear: " << commonPacket->_sendCabinSwitchPacket.currentGear << '\n';
+		std::memcpy(&commonSendPacket->_sendCabinSwitchPacket, buffer.data(), sizeof(SendCabinSwitchPacket));
+		//std::cout << "Current Gear: " << commonSendPacket->_sendCabinSwitchPacket.currentGear << '\n';
 	}
 	catch (const std::exception& e)
 	{
@@ -534,9 +534,9 @@ void MotionCore::sendLoop()
 
 		const int bufferSize = sizeof(SendMotionPacket);
 		std::vector<unsigned char> buffer(bufferSize);
-		commonPacket->_sendMotionPacket.FrameCounter++;
-		std::memcpy(buffer.data(), &commonPacket->_sendMotionPacket, sizeof(SendMotionPacket));
 
+		commonSendPacket->_sendMotionPacket.FrameCounter++;
+		std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
 }
@@ -545,6 +545,8 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
+		std::memcpy(&commonRecvPacket->_recvMotionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(MotionPacket));
+
 		/*MotionPacket motionPacket = { 0 };
 		std::memcpy(&motionPacket, buffer.data(), sizeof(MotionPacket));
 
@@ -599,9 +601,11 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonPacket->_sendMotionPacket, buffer.data(), sizeof(SendMotionPacket));
-		/*std::cout << "FrameCounter: " << commonPacket->_sendMotionPacket.FrameCounter << '\n';
-		std::cout << "turb10AmpZ: " << commonPacket->_sendMotionPacket.turb10AmpZ << '\n';*/
+		if (commonRecvPacket->_recvMotionPacket.motionStatus > 10) return;
+
+		std::memcpy(&commonSendPacket->_sendMotionPacket, buffer.data(), sizeof(SendMotionPacket));
+		/*std::cout << "FrameCounter: " << commonSendPacket->_sendMotionPacket.FrameCounter << '\n';
+		std::cout << "turb10AmpZ: " << commonSendPacket->_sendMotionPacket.turb10AmpZ << '\n';*/
 	}
 	catch (const std::exception& e)
 	{

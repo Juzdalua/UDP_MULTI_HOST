@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="RecvPacketInfo.cpp" />
     <ClCompile Include="SendPacketInfo.cpp" />
     <ClCompile Include="UDP_MULTI_HOST.cpp" />
     <ClCompile Include="Utils.cpp" />

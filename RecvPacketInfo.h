@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #pragma pack(push,1)
 struct RecvPacketHeader
@@ -131,3 +132,11 @@ struct MotionPacket {
 	float analogInput4;
 };
 #pragma pack(pop)
+
+class CommonRecvPacket
+{
+public:
+	MotionPacket _recvMotionPacket = { 0 };
+	
+};
+extern std::shared_ptr<CommonRecvPacket> commonRecvPacket;
