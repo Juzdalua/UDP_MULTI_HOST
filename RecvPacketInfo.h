@@ -91,43 +91,43 @@ struct CabinSwitchPacket {
 
 #pragma pack(push,1)
 struct MotionPacket {
-	uint32_t FrameCounter1;
-	uint32_t motionStatus1;
-	uint32_t errorLevel1;
-	uint32_t errorCode1;
-	uint32_t ioInfo1;
+	uint32_t FrameCounter;
+	uint32_t motionStatus;
+	uint32_t errorLevel;
+	uint32_t errorCode;
+	uint32_t ioInfo;
 
-	float xPosition1;
-	float yPosition1;
-	float zPosition1;
-	float yawPosition1;
-	float pitchPosition1;
-	float rollPosition1;
+	float xPosition;
+	float yPosition;
+	float zPosition;
+	float yawPosition;
+	float pitchPosition;
+	float rollPosition;
 
-	float xSpeed1;
-	float ySpeed1;
-	float zSpeed1;
-	float yawSpeed1;
-	float pitchSpeed1;
-	float rollSpeed1;
+	float xSpeed;
+	float ySpeed;
+	float zSpeed;
+	float yawSpeed;
+	float pitchSpeed;
+	float rollSpeed;
 
-	float xAcc1;
-	float yAcc1;
-	float zAcc1;
-	float yawAcc1;
-	float pitchAcc1;
-	float rollAcc1;
+	float xAcc;
+	float yAcc;
+	float zAcc;
+	float yawAcc;
+	float pitchAcc;
+	float rollAcc;
 
-	float actuator1Length1;
-	float actuator2Length1;
-	float actuator3Length1;
-	float actuator4Length1;
-	float actuator5Length1;
-	float actuator6Length1;
+	float actuator1Length;
+	float actuator2Length;
+	float actuator3Length;
+	float actuator4Length;
+	float actuator5Length;
+	float actuator6Length;
 
-	float analogInput1_1;
-	float analogInput2_1;
-	float analogInput3_1;
-	float analogInput4_1;
+	float analogInput;
+	float analogInput;
+	float analogInput;
+	float analogInput;
 };
 #pragma pack(pop)

@@ -144,7 +144,7 @@ void Core::receiveLoop()
 				}
 
 				buffer.resize((int)recvPacketHeader.bSize);
-				std::cout << "Recv Len: " << recvLen << " / sNetVersion: " << recvPacketHeader.sNetVersion << " / sMask: " << recvPacketHeader.sMask << " / bSize: " << (int)recvPacketHeader.bSize << '\n';
+				//std::cout << "Recv Len: " << recvLen << " / sNetVersion: " << recvPacketHeader.sNetVersion << " / sMask: " << recvPacketHeader.sMask << " / bSize: " << (int)recvPacketHeader.bSize << '\n';
 			}
 
 			// Header 없는 패킷
@@ -205,7 +205,7 @@ void Core::sendTo(const std::vector<unsigned char>& buffer, const std::string& t
 		targetAddr.sin_addr.s_addr = inet_addr(targetIp.c_str());
 		targetAddr.sin_port = htons(targetPort);
 
-		std::cout << "[SEND] " << _ip << ":" << _port << " [" << _name << "] -> " << targetIp << ":" << targetPort << '\n';
+		//std::cout << "[SEND] " << _ip << ":" << _port << " [" << _name << "] -> " << targetIp << ":" << targetPort << '\n';
 		int sendToHost = sendto(_socket, (const char*)buffer.data(), buffer.size(), 0, (SOCKADDR*)&targetAddr, sizeof(targetAddr));
 		if (sendToHost == SOCKET_ERROR) {
 			std::cout << "[SEND ERROR] " << WSAGetLastError() << '\n';
@@ -272,13 +272,13 @@ void HandleCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		SteerPacket steerPacket = { 0 };
+		/*SteerPacket steerPacket = { 0 };
 		std::memcpy(&steerPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SteerPacket));
 
 		std::cout << " status: " << steerPacket.status;
 		std::cout << " steerAngle: " << steerPacket.steerAngle;
 		std::cout << " steerAngleRate: " << steerPacket.steerAngleRate;
-		std::cout << '\n';
+		std::cout << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
@@ -292,15 +292,14 @@ void HandleCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::cout << "dddddddddddddddddddddddddd" << '\n';
 		std::memcpy(&commonPacket->_sendHandlePacket, buffer.data(), sizeof(SendHandlePacket));
-		std::cout << "simState: " << commonPacket->_sendHandlePacket.simState << '\n';
+		/*std::cout << "simState: " << commonPacket->_sendHandlePacket.simState << '\n';
 		std::cout << "velocity: " << commonPacket->_sendHandlePacket.velocity << '\n';
 		std::cout << "wheelAngleVelocityLF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLF << '\n';
 		std::cout << "wheelAngleVelocityRF: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRF << '\n';
 		std::cout << "wheelAngleVelocityLB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityLB << '\n';
 		std::cout << "wheelAngleVelocityRB: " << commonPacket->_sendHandlePacket.wheelAngleVelocityRB << '\n';
-		std::cout << "targetAngle: " << commonPacket->_sendHandlePacket.targetAngle << '\n';
+		std::cout << "targetAngle: " << commonPacket->_sendHandlePacket.targetAngle << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -341,7 +340,7 @@ void CabinControlCore::sendLoop()
 		std::vector<unsigned char> buffer(bufferSize);
 		std::memcpy(buffer.data(), &commonPacket->_sendCabinControlPacket, sizeof(SendCabinControlPacket));
 
-		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+		sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
 }
 
@@ -349,14 +348,14 @@ void CabinControlCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 {
 	try
 	{
-		CabinControlPacket cabinControlPacket = { 0 };
+		/*CabinControlPacket cabinControlPacket = { 0 };
 		std::memcpy(&cabinControlPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(CabinControlPacket));
 
 		std::cout << " status: " << cabinControlPacket.status;
 		std::cout << " carHeight: " << cabinControlPacket.carHeight;
 		std::cout << " carWidth: " << cabinControlPacket.carWidth;
 		std::cout << " seatWidth: " << cabinControlPacket.seatWidth;
-		std::cout << '\n';
+		std::cout << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
@@ -371,8 +370,8 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		std::memcpy(&commonPacket->_sendCabinControlPacket, buffer.data(), sizeof(SendCabinControlPacket));
-		std::cout << "command: " << commonPacket->_sendCabinControlPacket.command << '\n';
-		std::cout << "seatHeight: " << commonPacket->_sendCabinControlPacket.seatHeight << '\n';
+		/*std::cout << "command: " << commonPacket->_sendCabinControlPacket.command << '\n';
+		std::cout << "seatHeight: " << commonPacket->_sendCabinControlPacket.seatHeight << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -421,10 +420,10 @@ void CanbinSwitchCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 {
 	try
 	{
-		CabinSwitchPacket cabinSwitchPacket = { 0 };
+		/*CabinSwitchPacket cabinSwitchPacket = {0};
 		std::memcpy(&cabinSwitchPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(CabinSwitchPacket));
 
-		/*std::cout << " GearTriger: " << (int)cabinSwitchPacket.GearTriger;
+		std::cout << " GearTriger: " << (int)cabinSwitchPacket.GearTriger;
 		std::cout << " GearP: " << (int)cabinSwitchPacket.GearP;
 		std::cout << " Left_Paddle_Shift: " << (int)cabinSwitchPacket.Left_Paddle_Shift;
 		std::cout << " Right_Paddle_Shift: " << (int)cabinSwitchPacket.Right_Paddle_Shift;
@@ -546,47 +545,47 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		MotionPacket motionPacket = { 0 };
+		/*MotionPacket motionPacket = { 0 };
 		std::memcpy(&motionPacket, buffer.data(), sizeof(MotionPacket));
 
-		std::cout << "FrameCounter1: " << motionPacket.FrameCounter1 << " ";
-		std::cout << "motionStatus1: " << motionPacket.motionStatus1 << " ";
-		std::cout << "errorLevel1: " << motionPacket.errorLevel1 << " ";
-		std::cout << "errorCode1: " << motionPacket.errorCode1 << " ";
-		std::cout << "ioInfo1: " << motionPacket.ioInfo1 << " ";
+		std::cout << "FrameCounter1: " << motionPacket.FrameCounter << " ";
+		std::cout << "motionStatus1: " << motionPacket.motionStatus << " ";
+		std::cout << "errorLevel1: " << motionPacket.errorLevel << " ";
+		std::cout << "errorCode1: " << motionPacket.errorCode << " ";
+		std::cout << "ioInfo1: " << motionPacket.ioInfo << " ";
 
-		std::cout << "xPosition1: " << motionPacket.xPosition1 << " ";
-		std::cout << "yPosition1: " << motionPacket.yPosition1 << " ";
-		std::cout << "zPosition1: " << motionPacket.zPosition1 << " ";
-		std::cout << "yawPosition1: " << motionPacket.yawPosition1 << " ";
-		std::cout << "pitchPosition1: " << motionPacket.pitchPosition1 << " ";
-		std::cout << "rollPosition1: " << motionPacket.rollPosition1 << " ";
+		std::cout << "xPosition1: " << motionPacket.xPosition << " ";
+		std::cout << "yPosition1: " << motionPacket.yPosition << " ";
+		std::cout << "zPosition1: " << motionPacket.zPosition << " ";
+		std::cout << "yawPosition1: " << motionPacket.yawPosition << " ";
+		std::cout << "pitchPosition1: " << motionPacket.pitchPosition << " ";
+		std::cout << "rollPosition1: " << motionPacket.rollPosition << " ";
 
-		std::cout << "xSpeed1: " << motionPacket.xSpeed1 << " ";
-		std::cout << "ySpeed1: " << motionPacket.ySpeed1 << " ";
-		std::cout << "zSpeed1: " << motionPacket.zSpeed1 << " ";
-		std::cout << "yawSpeed1: " << motionPacket.yawSpeed1 << " ";
-		std::cout << "pitchSpeed1: " << motionPacket.pitchSpeed1 << " ";
-		std::cout << "rollSpeed1: " << motionPacket.rollSpeed1 << " ";
+		std::cout << "xSpeed1: " << motionPacket.xSpeed << " ";
+		std::cout << "ySpeed1: " << motionPacket.ySpeed << " ";
+		std::cout << "zSpeed1: " << motionPacket.zSpeed << " ";
+		std::cout << "yawSpeed1: " << motionPacket.yawSpeed << " ";
+		std::cout << "pitchSpeed1: " << motionPacket.pitchSpeed << " ";
+		std::cout << "rollSpeed1: " << motionPacket.rollSpeed << " ";
 
-		std::cout << "xAcc1: " << motionPacket.xAcc1 << " ";
-		std::cout << "yAcc1: " << motionPacket.yAcc1 << " ";
-		std::cout << "zAcc1: " << motionPacket.zAcc1 << " ";
-		std::cout << "yawAcc1: " << motionPacket.yawAcc1 << " ";
-		std::cout << "pitchAcc1: " << motionPacket.pitchAcc1 << " ";
-		std::cout << "rollAcc1: " << motionPacket.rollAcc1 << " ";
+		std::cout << "xAcc1: " << motionPacket.xAcc << " ";
+		std::cout << "yAcc1: " << motionPacket.yAcc << " ";
+		std::cout << "zAcc1: " << motionPacket.zAcc << " ";
+		std::cout << "yawAcc1: " << motionPacket.yawAcc << " ";
+		std::cout << "pitchAcc1: " << motionPacket.pitchAcc << " ";
+		std::cout << "rollAcc1: " << motionPacket.rollAcc << " ";
 
-		std::cout << "actuator1Length1: " << motionPacket.actuator1Length1 << " ";
-		std::cout << "actuator2Length1: " << motionPacket.actuator2Length1 << " ";
-		std::cout << "actuator3Length1: " << motionPacket.actuator3Length1 << " ";
-		std::cout << "actuator4Length1: " << motionPacket.actuator4Length1 << " ";
-		std::cout << "actuator5Length1: " << motionPacket.actuator5Length1 << " ";
-		std::cout << "actuator6Length1: " << motionPacket.actuator6Length1 << " ";
+		std::cout << "actuator1Length1: " << motionPacket.actuator1Length << " ";
+		std::cout << "actuator2Length1: " << motionPacket.actuator2Length << " ";
+		std::cout << "actuator3Length1: " << motionPacket.actuator3Length << " ";
+		std::cout << "actuator4Length1: " << motionPacket.actuator4Length << " ";
+		std::cout << "actuator5Length1: " << motionPacket.actuator5Length << " ";
+		std::cout << "actuator6Length1: " << motionPacket.actuator6Length << " ";
 
-		std::cout << "analogInput1_1: " << motionPacket.analogInput1_1 << " ";
-		std::cout << "analogInput2_1: " << motionPacket.analogInput2_1 << " ";
-		std::cout << "analogInput3_1: " << motionPacket.analogInput3_1 << " ";
-		std::cout << "analogInput4_1: " << motionPacket.analogInput4_1 << '\n';
+		std::cout << "analogInput1_1: " << motionPacket.analogInput << " ";
+		std::cout << "analogInput2_1: " << motionPacket.analogInput << " ";
+		std::cout << "analogInput3_1: " << motionPacket.analogInput << " ";
+		std::cout << "analogInput4_1: " << motionPacket.analogInput << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
