@@ -424,7 +424,7 @@ void CanbinSwitchCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 		CabinSwitchPacket cabinSwitchPacket = { 0 };
 		std::memcpy(&cabinSwitchPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(CabinSwitchPacket));
 
-		std::cout << " GearTriger: " << (int)cabinSwitchPacket.GearTriger;
+		/*std::cout << " GearTriger: " << (int)cabinSwitchPacket.GearTriger;
 		std::cout << " GearP: " << (int)cabinSwitchPacket.GearP;
 		std::cout << " Left_Paddle_Shift: " << (int)cabinSwitchPacket.Left_Paddle_Shift;
 		std::cout << " Right_Paddle_Shift: " << (int)cabinSwitchPacket.Right_Paddle_Shift;
@@ -481,7 +481,7 @@ void CanbinSwitchCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 		std::cout << " ACCpedal: " << (int)cabinSwitchPacket.ACCpedal;
 		std::cout << " Brakepedal: " << (int)cabinSwitchPacket.Brakepedal;
 		std::cout << " bMask: " << (int)cabinSwitchPacket.bMask;
-		std::cout << '\n';
+		std::cout << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
@@ -535,6 +535,7 @@ void MotionCore::sendLoop()
 
 		const int bufferSize = sizeof(SendMotionPacket);
 		std::vector<unsigned char> buffer(bufferSize);
+		commonPacket->_sendMotionPacket.FrameCounter++;
 		std::memcpy(buffer.data(), &commonPacket->_sendMotionPacket, sizeof(SendMotionPacket));
 
 		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
