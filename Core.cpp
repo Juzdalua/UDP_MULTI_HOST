@@ -355,6 +355,7 @@ void CabinControlCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 		std::cout << " carHeight: " << cabinControlPacket.carHeight;
 		std::cout << " carWidth: " << cabinControlPacket.carWidth;
 		std::cout << " seatWidth: " << cabinControlPacket.seatWidth;
+		std::cout << " digitalInput: " << cabinControlPacket.digitalInput;
 		std::cout << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
