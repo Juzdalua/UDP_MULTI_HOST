@@ -24,6 +24,7 @@ struct CabinControlPacket {
 	float carHeight;
 	float carWidth;
 	float seatWidth;
+	unsigned __int16 digitalInput; // 0: 운전석 문센서, 1: 보조석 문 센서
 };
 #pragma pack(pop)
 

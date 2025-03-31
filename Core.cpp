@@ -510,7 +510,7 @@ MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned 
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
 	_tick = 10; // 100hz
-	_recvPacketSize = sizeof(MotionPacket);
+	_recvPacketSize = sizeof(MotionPacket) + sizeof(RecvPacketHeader);
 
 	if (_peerType == PeerType::INNO)
 	{
@@ -547,8 +547,8 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 	{
 		std::memcpy(&commonRecvPacket->_recvMotionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(MotionPacket));
 
-		/*MotionPacket motionPacket = { 0 };
-		std::memcpy(&motionPacket, buffer.data(), sizeof(MotionPacket));
+		MotionPacket motionPacket = { 0 };
+		std::memcpy(&motionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(MotionPacket));
 
 		std::cout << "FrameCounter1: " << motionPacket.FrameCounter << " ";
 		std::cout << "motionStatus1: " << motionPacket.motionStatus << " ";
@@ -587,7 +587,7 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 		std::cout << "analogInput1_1: " << motionPacket.analogInput1 << " ";
 		std::cout << "analogInput2_1: " << motionPacket.analogInput2 << " ";
 		std::cout << "analogInput3_1: " << motionPacket.analogInput3 << " ";
-		std::cout << "analogInput4_1: " << motionPacket.analogInput4 << '\n';*/
+		std::cout << "analogInput4_1: " << motionPacket.analogInput4 << '\n';
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
@@ -604,8 +604,9 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 		if (commonRecvPacket->_recvMotionPacket.motionStatus > 10) return;
 
 		std::memcpy(&commonSendPacket->_sendMotionPacket, buffer.data(), sizeof(SendMotionPacket));
-		/*std::cout << "FrameCounter: " << commonSendPacket->_sendMotionPacket.FrameCounter << '\n';
-		std::cout << "turb10AmpZ: " << commonSendPacket->_sendMotionPacket.turb10AmpZ << '\n';*/
+		std::cout << "FrameCounter: " << commonSendPacket->_sendMotionPacket.FrameCounter << '\n';
+		std::cout << "motionCommand: " << commonSendPacket->_sendMotionPacket.motionCommand << '\n';
+		std::cout << "turb10AmpZ: " << commonSendPacket->_sendMotionPacket.turb10AmpZ << '\n';
 	}
 	catch (const std::exception& e)
 	{
