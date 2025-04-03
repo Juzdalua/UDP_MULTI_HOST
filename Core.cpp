@@ -6,7 +6,8 @@
 
 std::unordered_set<std::string> headerIncludeClass = { "INNO_HANDLE", "INNO_CABIN_CONTROL", "INNO_CABIN_SWITCH" };
 std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION" };
-std::vector<std::vector<std::string>> csvVectorInMemory;
+std::vector<SendTimemachinePacket> sendTimemachinePkt;
+double sendTimemachineTick = 33.3;
 
 Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: _name(name), _ip(ip), _port(port), _scheduledSendIp(clientIp), _scheduledSendPort(clientPort), _peerType(peerType), _running(false), _socket(INVALID_SOCKET)
@@ -257,15 +258,32 @@ void HandleCore::sendLoop()
 	while (_running)
 	{
 		long long now = Utils::GetNowTimeMs();
-		if (now - _lastSendMs < _tick) continue;
-
-		_lastSendMs = now;
-
 		const int bufferSize = sizeof(SendHandlePacket);
-		std::vector<unsigned char> buffer(bufferSize);
-		std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
 
-		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+		// 타임머신 리플레이
+		if (commonRecvPacket->_recvCustomCorePacket.status == 2)
+		{
+			for (auto pkt : sendTimemachinePkt)
+			{
+				commonSendPacket->_sendHandlePacket.targetAngle = pkt.steering;
+				std::vector<unsigned char> buffer(bufferSize);
+				std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
+				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+				std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(sendTimemachineTick)));
+			}
+		}
+
+		// 일반 주행
+		else
+		{
+			if (now - _lastSendMs < _tick) continue;
+			_lastSendMs = now;
+
+			std::vector<unsigned char> buffer(bufferSize);
+			std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
+
+			sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+		}
 	}
 }
 
@@ -530,16 +548,36 @@ void MotionCore::sendLoop()
 	while (_running)
 	{
 		long long now = Utils::GetNowTimeMs();
-		if (now - _lastSendMs < _tick) continue;
-
-		_lastSendMs = now;
-
 		const int bufferSize = sizeof(SendMotionPacket);
-		std::vector<unsigned char> buffer(bufferSize);
 
-		commonSendPacket->_sendMotionPacket.FrameCounter++;
-		std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
-		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+		// 타임머신 리플레이
+		if (commonRecvPacket->_recvCustomCorePacket.status == 2)
+		{
+			for (auto pkt : sendTimemachinePkt)
+			{
+				commonSendPacket->_sendHandlePacket.targetAngle = pkt.steering;
+				commonSendPacket->_sendMotionPacket.psi = pkt.yaw;
+				commonSendPacket->_sendMotionPacket.theta = pkt.pitch;
+				commonSendPacket->_sendMotionPacket.phi = pkt.roll;
+
+				std::vector<unsigned char> buffer(bufferSize);
+				std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
+				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+				std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(sendTimemachineTick)));
+			}
+		}
+
+		// 일반 주행
+		else
+		{
+			if (now - _lastSendMs < _tick) continue;
+			_lastSendMs = now;
+
+			std::vector<unsigned char> buffer(bufferSize);
+			std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
+
+			sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+		}
 	}
 }
 
@@ -633,20 +671,41 @@ void TimemachineCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	std::memcpy(&commonRecvPacket->_recvCustomCorePacket, buffer.data(), sizeof(SendMotionPacket));
+	std::cout << "status: " << commonRecvPacket->_recvCustomCorePacket.status << '\n';
+	std::cout << "customer_id: " << commonRecvPacket->_recvCustomCorePacket.customer_id << '\n';
 
 	switch (commonRecvPacket->_recvCustomCorePacket.status)
 	{
 		{
 	case 0:
-		csvVectorInMemory.clear();
+		sendTimemachinePkt.clear();
 		break;
 		}
 
 		{
 	case 1:
-		if (csvVectorInMemory.size() != 0) break;
+		if (sendTimemachinePkt.size() != 0) break;
 
-		csvVectorInMemory = Utils::LoadCSVFiles(commonRecvPacket->_recvCustomCorePacket.customer_id);
+		auto csvFile = Utils::LoadCSVFiles(commonRecvPacket->_recvCustomCorePacket.customer_id);
+
+		bool isHeader = true;
+		for (const auto& row : csvFile) {
+			if (isHeader) {
+				isHeader = false;
+				continue;
+			}
+			if (row.size() < 5) continue; // row가 부족하면 무시
+
+			SendTimemachinePacket data;
+			data.timestamp = row[0];
+			data.steering = std::stod(row[1]);
+			data.roll = std::stod(row[2]);
+			data.pitch = std::stod(row[3]);
+			data.yaw = std::stod(row[4]);
+
+			sendTimemachinePkt.push_back(data);
+		}
+
 		break;
 		}
 

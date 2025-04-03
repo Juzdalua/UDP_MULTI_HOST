@@ -134,4 +134,5 @@ public:
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
 
-extern std::vector<std::vector<std::string>> csvVectorInMemory;
+extern std::vector<SendTimemachinePacket> sendTimemachinePkt;
+extern double sendTimemachineTick;
