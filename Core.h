@@ -120,3 +120,18 @@ public:
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;	
 };
+
+/*-----------------
+	Custom Core
+-----------------*/
+class TimemachineCore : public Core
+{
+public:
+	TimemachineCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
+	void sendLoop() override;
+
+	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
+	void handleUePacket(const std::vector<unsigned char>& buffer) override;
+};
+
+extern std::vector<std::vector<std::string>> csvVectorInMemory;

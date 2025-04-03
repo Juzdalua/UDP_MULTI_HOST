@@ -5,7 +5,7 @@
 
 int main()
 {
-	auto a =Utils::LoadCSVFiles(2);
+	/*auto a =Utils::LoadCSVFiles(2);
 	for (const auto& row : a) {
 		for (const auto& cell : row) {
 			std::cout << cell << " ";
@@ -13,7 +13,7 @@ int main()
 		std::cout << '\n';
 	}
 
-	return 0;
+	return 0;*/
 
 	try
 	{
@@ -90,6 +90,19 @@ int main()
 	catch (const std::exception& e)
 	{
 		Utils::LogError("Main UE init error: " + std::string(e.what()), "main");
+		return 0;
+	}
+
+	// TIMEMACHINE CSV 세팅
+	int hostTimemachinePort = stoi(Utils::getEnv("HOST_RECV_FLAG"));
+	try
+	{
+		std::shared_ptr<TimemachineCore> hostTimemachine = std::make_shared<TimemachineCore>("TIMEMACHINE", hostIp, hostTimemachinePort, handleIp, handlePort, PeerType::UE);
+		cores.emplace_back(hostTimemachine);
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("Main inno init error: " + std::string(e.what()), "main");
 		return 0;
 	}
 

@@ -134,10 +134,18 @@ struct MotionPacket {
 };
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+struct CustomCorePacket
+{
+	unsigned char status; // 0: 초기, 1: 레디, 2:시작
+	int customer_id;
+};
+#pragma pack(pop)
+
 class CommonRecvPacket
 {
 public:
 	MotionPacket _recvMotionPacket = { 0 };
-	
+	CustomCorePacket _recvCustomCorePacket = { 0 };
 };
 extern std::shared_ptr<CommonRecvPacket> commonRecvPacket;

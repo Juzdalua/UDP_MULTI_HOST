@@ -6,6 +6,7 @@
 
 std::unordered_set<std::string> headerIncludeClass = { "INNO_HANDLE", "INNO_CABIN_CONTROL", "INNO_CABIN_SWITCH" };
 std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION" };
+std::vector<std::vector<std::string>> csvVectorInMemory;
 
 Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: _name(name), _ip(ip), _port(port), _scheduledSendIp(clientIp), _scheduledSendPort(clientPort), _peerType(peerType), _running(false), _socket(INVALID_SOCKET)
@@ -612,6 +613,47 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	catch (const std::exception& e)
 	{
 		Utils::LogError("MotionCore::handleUePacket Parse error: " + std::string(e.what()), "MotionCore::handleUePacket");
+	}
+}
+
+TimemachineCore::TimemachineCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
+	: Core(name, ip, port, clientIp, clientPort, peerType)
+{
+	_tick = 33.3;
+}
+
+void TimemachineCore::sendLoop()
+{
+}
+
+void TimemachineCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
+{
+}
+
+void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
+{
+	std::memcpy(&commonRecvPacket->_recvCustomCorePacket, buffer.data(), sizeof(SendMotionPacket));
+
+	switch (commonRecvPacket->_recvCustomCorePacket.status)
+	{
+		{
+	case 0:
+		csvVectorInMemory.clear();
+		break;
+		}
+
+		{
+	case 1:
+		if (csvVectorInMemory.size() != 0) break;
+
+		csvVectorInMemory = Utils::LoadCSVFiles(commonRecvPacket->_recvCustomCorePacket.customer_id);
+		break;
+		}
+
+		{
+	case 2:
+		break;
+		}
 	}
 }
 
