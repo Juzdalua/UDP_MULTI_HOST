@@ -5,6 +5,16 @@
 
 int main()
 {
+	auto a =Utils::LoadCSVFiles(2);
+	for (const auto& row : a) {
+		for (const auto& cell : row) {
+			std::cout << cell << " ";
+		}
+		std::cout << '\n';
+	}
+
+	return 0;
+
 	try
 	{
 		Utils::EnvInit();
