@@ -5,9 +5,10 @@
 #include "SendPacketInfo.h"
 
 std::unordered_set<std::string> headerIncludeClass = { "INNO_HANDLE", "INNO_CABIN_CONTROL", "INNO_CABIN_SWITCH" };
-std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION" };
+std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION", "TIMEMACHINE"};
 std::vector<SendTimemachinePacket> sendTimemachinePkt;
 double sendTimemachineTick = 33.3;
+std::atomic<bool> isRunTimemachine = false;
 
 Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: _name(name), _ip(ip), _port(port), _scheduledSendIp(clientIp), _scheduledSendPort(clientPort), _peerType(peerType), _running(false), _socket(INVALID_SOCKET)
@@ -179,6 +180,12 @@ void Core::receiveLoop()
 					recvPacketSize = motionCore->_recvPacketSize;
 				}
 
+				else if (_name == "TIMEMACHINE" && typeid(*this) == typeid(TimemachineCore))
+				{
+					TimemachineCore* timemachineCore = dynamic_cast<TimemachineCore*>(this);
+					recvPacketSize = timemachineCore->_recvPacketSize;
+				}
+
 				if (recvPacketSize != recvLen)
 				{
 					std::cerr << "Data Size Not Enough [" << _name << "] / recvPacketSize: " << recvPacketSize << ", recvLen : " << recvLen << '\n';
@@ -261,7 +268,7 @@ void HandleCore::sendLoop()
 		const int bufferSize = sizeof(SendHandlePacket);
 
 		// 타임머신 리플레이
-		if (commonRecvPacket->_recvCustomCorePacket.status == 2)
+		if (isRunTimemachine.load())
 		{
 			for (auto pkt : sendTimemachinePkt)
 			{
@@ -271,6 +278,7 @@ void HandleCore::sendLoop()
 				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 				std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(sendTimemachineTick)));
 			}
+			isRunTimemachine.store(false);
 		}
 
 		// 일반 주행
@@ -530,7 +538,8 @@ MotionCore::MotionCore(const std::string& name, const std::string& ip, unsigned 
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
 	_tick = 10; // 100hz
-	_recvPacketSize = sizeof(MotionPacket) + sizeof(RecvPacketHeader);
+	//_recvPacketSize = sizeof(MotionPacket) + sizeof(RecvPacketHeader);
+	_recvPacketSize = sizeof(MotionPacket);
 
 	if (_peerType == PeerType::INNO)
 	{
@@ -551,11 +560,10 @@ void MotionCore::sendLoop()
 		const int bufferSize = sizeof(SendMotionPacket);
 
 		// 타임머신 리플레이
-		if (commonRecvPacket->_recvCustomCorePacket.status == 2)
+		if (isRunTimemachine.load())
 		{
 			for (auto pkt : sendTimemachinePkt)
 			{
-				commonSendPacket->_sendHandlePacket.targetAngle = pkt.steering;
 				commonSendPacket->_sendMotionPacket.psi = pkt.yaw;
 				commonSendPacket->_sendMotionPacket.theta = pkt.pitch;
 				commonSendPacket->_sendMotionPacket.phi = pkt.roll;
@@ -565,6 +573,7 @@ void MotionCore::sendLoop()
 				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 				std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(sendTimemachineTick)));
 			}
+			isRunTimemachine.store(false);
 		}
 
 		// 일반 주행
@@ -590,7 +599,7 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 		MotionPacket motionPacket = { 0 };
 		std::memcpy(&motionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(MotionPacket));
 
-		std::cout << "FrameCounter1: " << motionPacket.FrameCounter << " ";
+		/*std::cout << "FrameCounter1: " << motionPacket.FrameCounter << " ";
 		std::cout << "motionStatus1: " << motionPacket.motionStatus << " ";
 		std::cout << "errorLevel1: " << motionPacket.errorLevel << " ";
 		std::cout << "errorCode1: " << motionPacket.errorCode << " ";
@@ -627,7 +636,7 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 		std::cout << "analogInput1_1: " << motionPacket.analogInput1 << " ";
 		std::cout << "analogInput2_1: " << motionPacket.analogInput2 << " ";
 		std::cout << "analogInput3_1: " << motionPacket.analogInput3 << " ";
-		std::cout << "analogInput4_1: " << motionPacket.analogInput4 << '\n';
+		std::cout << "analogInput4_1: " << motionPacket.analogInput4 << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
 	}
@@ -644,9 +653,9 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 		if (commonRecvPacket->_recvMotionPacket.motionStatus > 10) return;
 
 		std::memcpy(&commonSendPacket->_sendMotionPacket, buffer.data(), sizeof(SendMotionPacket));
-		std::cout << "FrameCounter: " << commonSendPacket->_sendMotionPacket.FrameCounter << '\n';
+		/*std::cout << "FrameCounter: " << commonSendPacket->_sendMotionPacket.FrameCounter << '\n';
 		std::cout << "motionCommand: " << commonSendPacket->_sendMotionPacket.motionCommand << '\n';
-		std::cout << "turb10AmpZ: " << commonSendPacket->_sendMotionPacket.turb10AmpZ << '\n';
+		std::cout << "turb10AmpZ: " << commonSendPacket->_sendMotionPacket.turb10AmpZ << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -657,6 +666,7 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 TimemachineCore::TimemachineCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
+	_recvPacketSize = sizeof(CustomCorePacket);
 	_tick = 33.3;
 }
 
@@ -671,14 +681,16 @@ void TimemachineCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	std::memcpy(&commonRecvPacket->_recvCustomCorePacket, buffer.data(), sizeof(SendMotionPacket));
-	std::cout << "status: " << commonRecvPacket->_recvCustomCorePacket.status << '\n';
-	std::cout << "customer_id: " << commonRecvPacket->_recvCustomCorePacket.customer_id << '\n';
+	/*std::cout << "status: " << commonRecvPacket->_recvCustomCorePacket.status << '\n';
+	std::cout << "customer_id: " << commonRecvPacket->_recvCustomCorePacket.customer_id << '\n';*/
 
 	switch (commonRecvPacket->_recvCustomCorePacket.status)
 	{
 		{
 	case 0:
+		commonRecvPacket->_recvCustomCorePacket = { 0 };
 		sendTimemachinePkt.clear();
+		isRunTimemachine.store(false);
 		break;
 		}
 
@@ -689,7 +701,8 @@ void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 		auto csvFile = Utils::LoadCSVFiles(commonRecvPacket->_recvCustomCorePacket.customer_id);
 
 		bool isHeader = true;
-		for (const auto& row : csvFile) {
+		for (const auto& row : csvFile) 
+		{
 			if (isHeader) {
 				isHeader = false;
 				continue;
@@ -705,12 +718,14 @@ void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 
 			sendTimemachinePkt.push_back(data);
 		}
+		isRunTimemachine.store(false);
 
 		break;
 		}
 
 		{
 	case 2:
+		isRunTimemachine.store(true);
 		break;
 		}
 	}
