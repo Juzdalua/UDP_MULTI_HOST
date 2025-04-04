@@ -135,6 +135,7 @@ struct SendMotionPacket {
 struct SendTimemachinePacket {
 	std::string timestamp;
 	double steering;
+	double velocity;
 	double roll;
 	double pitch;
 	double yaw;

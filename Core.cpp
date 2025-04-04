@@ -273,6 +273,7 @@ void HandleCore::sendLoop()
 			for (auto pkt : sendTimemachinePkt)
 			{
 				commonSendPacket->_sendHandlePacket.targetAngle = pkt.steering;
+				commonSendPacket->_sendHandlePacket.velocity = pkt.velocity;
 				std::vector<unsigned char> buffer(bufferSize);
 				std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
 				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
@@ -567,6 +568,7 @@ void MotionCore::sendLoop()
 				commonSendPacket->_sendMotionPacket.psi = pkt.yaw;
 				commonSendPacket->_sendMotionPacket.theta = pkt.pitch;
 				commonSendPacket->_sendMotionPacket.phi = pkt.roll;
+				commonSendPacket->_sendMotionPacket.FrameCounter++;
 
 				std::vector<unsigned char> buffer(bufferSize);
 				std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
@@ -584,6 +586,7 @@ void MotionCore::sendLoop()
 
 			std::vector<unsigned char> buffer(bufferSize);
 			std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
+			commonSendPacket->_sendMotionPacket.FrameCounter++;
 
 			sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 		}
@@ -712,9 +715,10 @@ void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 			SendTimemachinePacket data;
 			data.timestamp = row[0];
 			data.steering = std::stod(row[1]);
-			data.roll = std::stod(row[2]);
-			data.pitch = std::stod(row[3]);
-			data.yaw = std::stod(row[4]);
+			data.velocity = std::stod(row[2]);
+			data.roll = std::stod(row[3]);
+			data.pitch = std::stod(row[4]);
+			data.yaw = std::stod(row[5]);
 
 			sendTimemachinePkt.push_back(data);
 		}
