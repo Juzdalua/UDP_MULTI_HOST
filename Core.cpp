@@ -5,7 +5,7 @@
 #include "SendPacketInfo.h"
 
 std::unordered_set<std::string> headerIncludeClass = { "INNO_HANDLE", "INNO_CABIN_CONTROL", "INNO_CABIN_SWITCH" };
-std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION", "TIMEMACHINE"};
+std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION", "TIMEMACHINE" };
 std::vector<SendTimemachinePacket> sendTimemachinePkt;
 double sendTimemachineTick = 33.3;
 std::atomic<bool> isRunTimemachine = false;
@@ -568,6 +568,11 @@ void MotionCore::sendLoop()
 				commonSendPacket->_sendMotionPacket.psi = pkt.yaw;
 				commonSendPacket->_sendMotionPacket.theta = pkt.pitch;
 				commonSendPacket->_sendMotionPacket.phi = pkt.roll;
+				commonSendPacket->_sendMotionPacket.xAcc = pkt.xAcc;
+				commonSendPacket->_sendMotionPacket.yAcc = pkt.yAcc;
+				commonSendPacket->_sendMotionPacket.zAcc = pkt.zAcc;
+				commonSendPacket->_sendMotionPacket.rDot = pkt.rDot;
+				commonSendPacket->_sendMotionPacket.vehicleSpeed = pkt.vehicleSpeed;
 				commonSendPacket->_sendMotionPacket.FrameCounter++;
 
 				std::vector<unsigned char> buffer(bufferSize);
@@ -704,7 +709,7 @@ void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 		auto csvFile = Utils::LoadCSVFiles(commonRecvPacket->_recvCustomCorePacket.customer_id);
 
 		bool isHeader = true;
-		for (const auto& row : csvFile) 
+		for (const auto& row : csvFile)
 		{
 			if (isHeader) {
 				isHeader = false;
@@ -719,6 +724,11 @@ void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 			data.roll = std::stod(row[3]);
 			data.pitch = std::stod(row[4]);
 			data.yaw = std::stod(row[5]);
+			data.xAcc = std::stod(row[6]);
+			data.yAcc = std::stod(row[7]);
+			data.zAcc = std::stod(row[8]);
+			data.rDot = std::stod(row[9]);
+			data.vehicleSpeed = std::stod(row[10]);
 
 			sendTimemachinePkt.push_back(data);
 		}

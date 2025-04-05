@@ -52,9 +52,9 @@ struct SendCabinSwitchPacket {
 struct SendMotionPacket {
 	uint32_t FrameCounter;
 	uint32_t motionCommand;
-	float xAccelerationCOG;
-	float yAccelerationCOG;
-	float zAccelerationCOG;
+	float xAcc;
+	float yAcc;
+	float zAcc;
 	float pDot;        // Z angular acceleration
 	float qDot;        // Y angular acceleration
 	float rDot;        // X angular acceleration
@@ -139,6 +139,11 @@ struct SendTimemachinePacket {
 	double roll;
 	double pitch;
 	double yaw;
+	double xAcc;
+	double yAcc;
+	double zAcc;
+	double rDot;
+	double vehicleSpeed;
 };
 #pragma pack(pop)
 
