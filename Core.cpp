@@ -7,8 +7,9 @@
 std::unordered_set<std::string> headerIncludeClass = { "INNO_HANDLE", "INNO_CABIN_CONTROL", "INNO_CABIN_SWITCH" };
 std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION", "TIMEMACHINE" };
 std::vector<SendTimemachinePacket> sendTimemachinePkt;
-double sendTimemachineTick = 33.3;
 std::atomic<bool> isRunTimemachine = false;
+int sendTimemachineTick = 33;
+auto timemachineNextTime = std::chrono::steady_clock::now();
 
 Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: _name(name), _ip(ip), _port(port), _scheduledSendIp(clientIp), _scheduledSendPort(clientPort), _peerType(peerType), _running(false), _socket(INVALID_SOCKET)
@@ -270,6 +271,7 @@ void HandleCore::sendLoop()
 		// 타임머신 리플레이
 		if (isRunTimemachine.load())
 		{
+			timemachineNextTime = std::chrono::steady_clock::now();
 			for (auto pkt : sendTimemachinePkt)
 			{
 				if (!isRunTimemachine.load()) break;
@@ -279,7 +281,14 @@ void HandleCore::sendLoop()
 				std::vector<unsigned char> buffer(bufferSize);
 				std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
 				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
-				std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(sendTimemachineTick)));
+
+				timemachineNextTime += std::chrono::milliseconds(sendTimemachineTick);
+
+				while (std::chrono::steady_clock::now() < timemachineNextTime) {
+					if (!isRunTimemachine.load()) break;
+					std::this_thread::yield(); 
+				}
+				if (!isRunTimemachine.load()) break;
 			}
 			isRunTimemachine.store(false);
 		}
@@ -565,6 +574,7 @@ void MotionCore::sendLoop()
 		// 타임머신 리플레이
 		if (isRunTimemachine.load())
 		{
+			timemachineNextTime = std::chrono::steady_clock::now();
 			for (auto pkt : sendTimemachinePkt)
 			{
 				if (!isRunTimemachine.load()) break;
@@ -582,7 +592,14 @@ void MotionCore::sendLoop()
 				std::vector<unsigned char> buffer(bufferSize);
 				std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
 				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
-				std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<long long>(sendTimemachineTick)));
+				
+				timemachineNextTime += std::chrono::milliseconds(sendTimemachineTick);
+
+				while (std::chrono::steady_clock::now() < timemachineNextTime) {
+					if (!isRunTimemachine.load()) break;
+					std::this_thread::yield();
+				}
+				if (!isRunTimemachine.load()) break;
 			}
 			isRunTimemachine.store(false);
 		}
