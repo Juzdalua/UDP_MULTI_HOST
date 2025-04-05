@@ -272,6 +272,8 @@ void HandleCore::sendLoop()
 		{
 			for (auto pkt : sendTimemachinePkt)
 			{
+				if (!isRunTimemachine.load()) break;
+
 				commonSendPacket->_sendHandlePacket.targetAngle = pkt.steering;
 				commonSendPacket->_sendHandlePacket.velocity = pkt.velocity;
 				std::vector<unsigned char> buffer(bufferSize);
@@ -565,6 +567,8 @@ void MotionCore::sendLoop()
 		{
 			for (auto pkt : sendTimemachinePkt)
 			{
+				if (!isRunTimemachine.load()) break;
+
 				commonSendPacket->_sendMotionPacket.psi = pkt.yaw;
 				commonSendPacket->_sendMotionPacket.theta = pkt.pitch;
 				commonSendPacket->_sendMotionPacket.phi = pkt.roll;
@@ -688,7 +692,7 @@ void TimemachineCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 
 void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
-	std::memcpy(&commonRecvPacket->_recvCustomCorePacket, buffer.data(), sizeof(SendMotionPacket));
+	std::memcpy(&commonRecvPacket->_recvCustomCorePacket, buffer.data(), sizeof(CustomCorePacket));
 	/*std::cout << "status: " << commonRecvPacket->_recvCustomCorePacket.status << '\n';
 	std::cout << "customer_id: " << commonRecvPacket->_recvCustomCorePacket.customer_id << '\n';*/
 

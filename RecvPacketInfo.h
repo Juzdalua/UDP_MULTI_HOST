@@ -137,7 +137,7 @@ struct MotionPacket {
 #pragma pack(push, 1)
 struct CustomCorePacket
 {
-	unsigned char status; // 0: 초기, 1: 레디, 2:시작
+	int status; // 0: 초기, 1: 레디, 2:시작
 	int customer_id;
 };
 #pragma pack(pop)
