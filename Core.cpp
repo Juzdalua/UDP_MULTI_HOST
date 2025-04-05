@@ -106,7 +106,7 @@ void Core::receiveLoop()
 				continue;
 			}
 
-			std::cout << '\n' << "[RECV] " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << " -> " << _ip << ":" << _port << " [" << _name << "]" << '\n';
+			//std::cout << '\n' << "[RECV] " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << " -> " << _ip << ":" << _port << " [" << _name << "]" << '\n';
 
 			if (headerIncludeClass.find(_name) != headerIncludeClass.end())
 			{
