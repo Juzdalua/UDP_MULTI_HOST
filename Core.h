@@ -135,5 +135,4 @@ public:
 };
 
 extern std::vector<SendTimemachinePacket> sendTimemachinePkt;
-extern int sendTimemachineTick;
 extern std::atomic<bool> isRunTimemachine;
