@@ -269,9 +269,11 @@ void HandleCore::sendLoop()
 		// 타임머신 리플레이
 		if (isRunTimemachine.load())
 		{
-			for (auto pkt : sendTimemachinePkt)
+			std::vector<SendTimemachinePacket> localCopy = sendTimemachinePkt;
+			for (size_t i = 0; i < localCopy.size(); ++i)
 			{
 				if (!isRunTimemachine.load()) break;
+				auto& pkt = localCopy[i];
 
 				commonSendPacket->_sendHandlePacket.targetAngle = pkt.steering;
 				commonSendPacket->_sendHandlePacket.velocity = pkt.velocity;
@@ -563,9 +565,11 @@ void MotionCore::sendLoop()
 		// 타임머신 리플레이
 		if (isRunTimemachine.load())
 		{
-			for (auto pkt : sendTimemachinePkt)
+			std::vector<SendTimemachinePacket> localCopy = sendTimemachinePkt;
+			for (size_t i = 0; i < localCopy.size(); ++i)
 			{
 				if (!isRunTimemachine.load()) break;
+				auto& pkt = localCopy[i];
 
 				commonSendPacket->_sendMotionPacket.psi = pkt.yaw;
 				commonSendPacket->_sendMotionPacket.theta = pkt.pitch;
@@ -660,7 +664,7 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		if (commonRecvPacket->_recvMotionPacket.motionStatus > 10) return;
-		
+
 		if (isRunTimemachine.load())
 		{
 			isRunTimemachine.store(false);
@@ -704,9 +708,9 @@ void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	{
 		{
 	case 0:
+		isRunTimemachine.store(false);
 		commonRecvPacket->_recvCustomCorePacket = { 0 };
 		sendTimemachinePkt.clear();
-		isRunTimemachine.store(false);
 		break;
 		}
 
