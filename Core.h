@@ -10,6 +10,7 @@
 #include <atomic>
 #include <winsock2.h>
 #include <unordered_set>
+#include <map>
 
 #include "SendPacketInfo.h"
 
@@ -134,5 +135,9 @@ public:
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
 
-extern std::vector<SendTimemachinePacket> sendTimemachinePkt;
-extern std::atomic<bool> isRunTimemachine;
+extern std::map<int, std::vector<SendTimemachinePacket>> sendTimemachinePktByTimestamp;
+
+extern int _timemachinePacketSize;
+extern std::atomic<bool> _isTimemachineMode;
+extern std::atomic<bool> _isHandleComplete;
+extern std::atomic<bool> _isMotionComplete;
