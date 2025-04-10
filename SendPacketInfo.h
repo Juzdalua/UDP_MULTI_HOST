@@ -42,6 +42,12 @@ struct SendCabinControlPacket {
 #pragma pack(push, 1) 
 struct SendCabinSwitchPacket {
 	unsigned char currentGear;
+	unsigned char brakeLamp;
+	unsigned char leftLamp;
+	unsigned char rightLamp;
+	unsigned char alertLamp;
+	unsigned char reverseLamp;
+	unsigned char headLamp;
 };
 #pragma pack(pop)
 
