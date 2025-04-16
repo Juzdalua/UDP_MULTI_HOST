@@ -101,7 +101,7 @@ std::vector<std::vector<std::string>> Utils::LoadCSVFiles(int customer_id)
 	}
 
 	std::string latestFilePath = std::string(absolutePath) + "\\" + latestFile;
-	//std::cout << "선택된 최신 파일: " << latestFilePath << std::endl;
+	std::cout << "선택된 최신 파일: " << latestFilePath << std::endl;
 
 	// CSV 파일 읽기
 	std::vector<std::vector<std::string>> csvData;

@@ -42,6 +42,12 @@ struct SendCabinControlPacket {
 #pragma pack(push, 1) 
 struct SendCabinSwitchPacket {
 	unsigned char currentGear;
+	unsigned char brakeLamp;
+	unsigned char leftLamp;
+	unsigned char rightLamp;
+	unsigned char alertLamp;
+	unsigned char reverseLamp;
+	unsigned char headLamp;
 };
 #pragma pack(pop)
 
@@ -144,6 +150,13 @@ struct SendTimemachinePacket {
 	double zAcc;
 	double rDot;
 	double vehicleSpeed;
+	unsigned char currentGear;
+	unsigned char brakeLamp;
+	unsigned char leftLamp;
+	unsigned char rightLamp;
+	unsigned char alertLamp;
+	unsigned char reverseLamp;
+	unsigned char headLamp;
 };
 #pragma pack(pop)
 
@@ -155,7 +168,7 @@ class CommonSendPacket
 public:
 	SendHandlePacket _sendHandlePacket = { 0 };
 	SendCabinControlPacket _sendCabinControlPacket = { 0 };
-	SendCabinSwitchPacket _sendCabinSwitchPacket = { 0 };
+	SendCabinSwitchPacket _sendCabinSwitchPacket = { 'P',0,0,0,0,0,0 };
 	SendMotionPacket _sendMotionPacket = { 0 };
 };
 extern std::shared_ptr<CommonSendPacket> commonSendPacket;

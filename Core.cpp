@@ -6,8 +6,13 @@
 
 std::unordered_set<std::string> headerIncludeClass = { "INNO_HANDLE", "INNO_CABIN_CONTROL", "INNO_CABIN_SWITCH" };
 std::unordered_set<std::string> headerExcludeClass = { "INNO_MOTION", "UE_HANDLE", "UE_CABIN_CONTROL", "UE_CABIN_SWITCH", "UE_MOTION", "TIMEMACHINE" };
-std::vector<SendTimemachinePacket> sendTimemachinePkt;
-std::atomic<bool> isRunTimemachine = false;
+std::map<int, std::vector<SendTimemachinePacket>> sendTimemachinePktByTimestamp;
+
+int _timemachinePacketSize = 0;
+std::atomic<bool> _isTimemachineMode = false;
+std::atomic<bool> _isHandleComplete = false;
+std::atomic<bool> _isCabinSwitchComplete = false;
+std::atomic<bool> _isMotionComplete = false;
 
 Core::Core(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: _name(name), _ip(ip), _port(port), _scheduledSendIp(clientIp), _scheduledSendPort(clientPort), _peerType(peerType), _running(false), _socket(INVALID_SOCKET)
@@ -267,21 +272,47 @@ void HandleCore::sendLoop()
 		const int bufferSize = sizeof(SendHandlePacket);
 
 		// 타임머신 리플레이
-		if (isRunTimemachine.load())
+		if (_isTimemachineMode.load(std::memory_order_acquire) && !_isHandleComplete.load())
 		{
-			std::vector<SendTimemachinePacket> localCopy = sendTimemachinePkt;
-			for (size_t i = 0; i < localCopy.size(); ++i)
+			//std::cout << "START HANDLE" << '\n';
+			auto localCopy = sendTimemachinePktByTimestamp;
+			for (const auto& [idx, pkt] : localCopy)
 			{
-				if (!isRunTimemachine.load()) break;
-				auto& pkt = localCopy[i];
+				if (pkt.size() == 0) continue;
 
-				commonSendPacket->_sendHandlePacket.targetAngle = pkt.steering;
-				commonSendPacket->_sendHandlePacket.velocity = pkt.velocity;
-				std::vector<unsigned char> buffer(bufferSize);
-				std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
-				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+				int pktSize = pkt.size();
+				double interval = static_cast<double>(1000) / static_cast<double>(pktSize);
+
+				for (int i = 0; i < pktSize; i++)
+				{
+					if (!_isTimemachineMode.load(std::memory_order_acquire))
+					{
+						_isHandleComplete.store(true, std::memory_order_release);
+						//std::cout << "BREAK HANDLE" << '\n';
+						break;
+					}
+
+					commonSendPacket->_sendHandlePacket.targetAngle = pkt[i].steering;
+					commonSendPacket->_sendHandlePacket.velocity = pkt[i].velocity;
+
+					/*std::cout << "taget angle: " << commonSendPacket->_sendHandlePacket.targetAngle << '\n';
+					std::cout << "velocity: " << commonSendPacket->_sendHandlePacket.velocity << '\n';
+					std::cout << '\n';*/
+
+					std::vector<unsigned char> buffer(bufferSize);
+					std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
+					sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+
+					if (i < pktSize - 1)
+					{
+						std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(interval)));
+					}
+
+				}
+				if (_isHandleComplete.load(std::memory_order_acquire)) break;
 			}
-			isRunTimemachine.store(false);
+			//std::cout << "HANDLE DONE" << '\n';
+			_isHandleComplete.store(true, std::memory_order_release);
 		}
 
 		// 일반 주행
@@ -291,7 +322,10 @@ void HandleCore::sendLoop()
 			_lastSendMs = now;
 
 			std::vector<unsigned char> buffer(bufferSize);
-			std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
+			/*std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
+			std::cout << "taget angle: " << commonSendPacket->_sendHandlePacket.targetAngle << '\n';
+			std::cout << "velocity: " << commonSendPacket->_sendHandlePacket.velocity << '\n';
+			std::cout << '\n';*/
 
 			sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 		}
@@ -302,10 +336,10 @@ void HandleCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		/*SteerPacket steerPacket = { 0 };
+		SteerPacket steerPacket = { 0 };
 		std::memcpy(&steerPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SteerPacket));
 
-		std::cout << " status: " << steerPacket.status;
+		/*std::cout << " status: " << steerPacket.status;
 		std::cout << " steerAngle: " << steerPacket.steerAngle;
 		std::cout << " steerAngleRate: " << steerPacket.steerAngleRate;
 		std::cout << '\n';*/
@@ -368,7 +402,13 @@ void CabinControlCore::sendLoop()
 
 		const int bufferSize = sizeof(SendCabinControlPacket);
 		std::vector<unsigned char> buffer(bufferSize);
+
+		// test
+		//commonSendPacket->_sendCabinControlPacket.avtivation = 
+
 		std::memcpy(buffer.data(), &commonSendPacket->_sendCabinControlPacket, sizeof(SendCabinControlPacket));
+
+		//std::cout << commonSendPacket->_sendCabinControlPacket.command << '\n';
 
 		sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 	}
@@ -417,6 +457,7 @@ CanbinSwitchCore::CanbinSwitchCore(const std::string& name, const std::string& i
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {
 	_tick = 10;
+	commonSendPacket->_sendCabinSwitchPacket.currentGear = 'P';
 
 	if (_peerType == PeerType::INNO)
 	{
@@ -433,17 +474,80 @@ void CanbinSwitchCore::sendLoop()
 {
 	while (_running)
 	{
-		long long now = Utils::GetNowTimeMs();
-		if (now - _lastSendMs < _tick) continue;
+		while (_running)
+		{
+			long long now = Utils::GetNowTimeMs();
+			const int bufferSize = sizeof(SendCabinSwitchPacket);
 
-		_lastSendMs = now;
+			if (_isTimemachineMode.load(std::memory_order_acquire) && !_isCabinSwitchComplete.load())
+			{
+				//std::cout << "START CabinSwitch" << '\n';
 
-		const int bufferSize = sizeof(SendCabinSwitchPacket);
-		std::vector<unsigned char> buffer(bufferSize);
+				auto localCopy = sendTimemachinePktByTimestamp;
+				for (const auto& [idx, pkt] : localCopy)
+				{
+					if (pkt.size() == 0) continue;
 
-		std::memcpy(buffer.data(), &commonSendPacket->_sendCabinSwitchPacket, sizeof(SendCabinSwitchPacket));
+					int pktSize = pkt.size();
+					double interval = static_cast<double>(1000) / static_cast<double>(pktSize);
 
-		//sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+					for (int i = 0; i < pktSize; i++)
+					{
+						if (!_isTimemachineMode.load(std::memory_order_acquire))
+						{
+							_isCabinSwitchComplete.store(true, std::memory_order_release);
+							//std::cout << "BREAK Cabin" << '\n';
+							break;
+						}
+
+						commonSendPacket->_sendCabinSwitchPacket.currentGear = pkt[i].currentGear;
+						commonSendPacket->_sendCabinSwitchPacket.brakeLamp = pkt[i].brakeLamp;
+						commonSendPacket->_sendCabinSwitchPacket.leftLamp = pkt[i].leftLamp;
+						commonSendPacket->_sendCabinSwitchPacket.rightLamp = pkt[i].rightLamp;
+						commonSendPacket->_sendCabinSwitchPacket.alertLamp = pkt[i].alertLamp;
+						commonSendPacket->_sendCabinSwitchPacket.reverseLamp = pkt[i].reverseLamp;
+						commonSendPacket->_sendCabinSwitchPacket.headLamp = pkt[i].headLamp;
+
+						std::vector<unsigned char> buffer(bufferSize);
+						std::memcpy(buffer.data(), &commonSendPacket->_sendCabinSwitchPacket, sizeof(SendCabinSwitchPacket));
+						sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+
+						if (i < pktSize - 1)
+						{
+							std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(interval)));
+						}
+					}
+
+					if (_isCabinSwitchComplete.load(std::memory_order_acquire)) break;
+				}
+				//std::cout << "CabinSwitch DONE" << '\n';
+				_isCabinSwitchComplete.store(true, std::memory_order_release);
+			}
+
+			// 일반 주행
+			else
+			{
+				if (now - _lastSendMs < _tick) continue;
+				_lastSendMs = now;
+
+				std::vector<unsigned char> buffer(bufferSize);
+				std::memcpy(buffer.data(), &commonSendPacket->_sendCabinSwitchPacket, sizeof(SendCabinSwitchPacket));
+
+				//commonSendPacket->_sendCabinSwitchPacket.alertLamp = 0;
+
+				/*std::cout << "SEND LOOP" << '\n';
+				std::cout << "currentGear: " << commonSendPacket->_sendCabinSwitchPacket.currentGear << '\n';
+				std::cout << "brakeLamp: " << commonSendPacket->_sendCabinSwitchPacket.brakeLamp - 0 << '\n';
+				std::cout << "leftLamp: " << commonSendPacket->_sendCabinSwitchPacket.leftLamp - 0 << '\n';
+				std::cout << "rightLamp: " << commonSendPacket->_sendCabinSwitchPacket.rightLamp - 0 << '\n';
+				std::cout << "alertLamp: " << commonSendPacket->_sendCabinSwitchPacket.alertLamp - 0 << '\n';
+				std::cout << "reverseLamp: " << commonSendPacket->_sendCabinSwitchPacket.reverseLamp - 0 << '\n';
+				std::cout << "headLamp: " << commonSendPacket->_sendCabinSwitchPacket.headLamp - 0 << '\n';
+				std::cout << '\n';*/
+
+				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+			}
+		}
 	}
 }
 
@@ -526,7 +630,16 @@ void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		std::memcpy(&commonSendPacket->_sendCabinSwitchPacket, buffer.data(), sizeof(SendCabinSwitchPacket));
-		//std::cout << "Current Gear: " << commonSendPacket->_sendCabinSwitchPacket.currentGear << '\n';
+		
+		/*std::cout << "HANDLE UE" << '\n';
+		std::cout << "currentGear: " << commonSendPacket->_sendCabinSwitchPacket.currentGear << '\n';
+		std::cout << "brakeLamp: " << commonSendPacket->_sendCabinSwitchPacket.brakeLamp - 0 << '\n';
+		std::cout << "leftLamp: " << commonSendPacket->_sendCabinSwitchPacket.leftLamp - 0 << '\n';
+		std::cout << "rightLamp:" << commonSendPacket->_sendCabinSwitchPacket.rightLamp - 0 << '\n';
+		std::cout << "alertLamp: " << commonSendPacket->_sendCabinSwitchPacket.alertLamp - 0 << '\n';
+		std::cout << "reverseLamp: " << commonSendPacket->_sendCabinSwitchPacket.reverseLamp - 0 << '\n';
+		std::cout << "headLamp: " << commonSendPacket->_sendCabinSwitchPacket.headLamp - 0 << '\n';
+		std::cout << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -562,30 +675,52 @@ void MotionCore::sendLoop()
 		long long now = Utils::GetNowTimeMs();
 		const int bufferSize = sizeof(SendMotionPacket);
 
-		// 타임머신 리플레이
-		if (isRunTimemachine.load())
+		if (_isTimemachineMode.load(std::memory_order_acquire) && !_isMotionComplete.load())
 		{
-			std::vector<SendTimemachinePacket> localCopy = sendTimemachinePkt;
-			for (size_t i = 0; i < localCopy.size(); ++i)
+			//std::cout << "START MOTION" << '\n';
+
+			auto localCopy = sendTimemachinePktByTimestamp;
+			for (const auto& [idx, pkt] : localCopy)
 			{
-				if (!isRunTimemachine.load()) break;
-				auto& pkt = localCopy[i];
+				if (pkt.size() == 0) continue;
 
-				commonSendPacket->_sendMotionPacket.psi = pkt.yaw;
-				commonSendPacket->_sendMotionPacket.theta = pkt.pitch;
-				commonSendPacket->_sendMotionPacket.phi = pkt.roll;
-				commonSendPacket->_sendMotionPacket.xAcc = pkt.xAcc;
-				commonSendPacket->_sendMotionPacket.yAcc = pkt.yAcc;
-				commonSendPacket->_sendMotionPacket.zAcc = pkt.zAcc;
-				commonSendPacket->_sendMotionPacket.rDot = pkt.rDot;
-				commonSendPacket->_sendMotionPacket.vehicleSpeed = pkt.vehicleSpeed;
-				commonSendPacket->_sendMotionPacket.FrameCounter++;
+				int pktSize = pkt.size();
+				double interval = static_cast<double>(1000) / static_cast<double>(pktSize);
 
-				std::vector<unsigned char> buffer(bufferSize);
-				std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
-				sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+				for (int i = 0; i < pktSize; i++)
+				{
+					if (!_isTimemachineMode.load(std::memory_order_acquire))
+					{
+						_isMotionComplete.store(true, std::memory_order_release);
+						//std::cout << "BREAK MOTION" << '\n';
+						break;
+					}
+
+					commonSendPacket->_sendMotionPacket.psi = pkt[i].yaw;
+					commonSendPacket->_sendMotionPacket.theta = pkt[i].pitch;
+					commonSendPacket->_sendMotionPacket.phi = pkt[i].roll;
+					commonSendPacket->_sendMotionPacket.xAcc = pkt[i].xAcc;
+					commonSendPacket->_sendMotionPacket.yAcc = pkt[i].yAcc;
+					commonSendPacket->_sendMotionPacket.zAcc = pkt[i].zAcc;
+					commonSendPacket->_sendMotionPacket.rDot = pkt[i].rDot;
+					commonSendPacket->_sendMotionPacket.vehicleSpeed = pkt[i].vehicleSpeed;
+					commonSendPacket->_sendMotionPacket.FrameCounter++;
+
+					std::vector<unsigned char> buffer(bufferSize);
+					std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
+					sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+
+					if (i < pktSize - 1)
+					{
+						std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(interval)));
+					}
+
+				}
+
+				if (_isMotionComplete.load(std::memory_order_acquire)) break;
 			}
-			isRunTimemachine.store(false);
+			//std::cout << "MOTION DONE" << '\n';
+			_isMotionComplete.store(true, std::memory_order_release);
 		}
 
 		// 일반 주행
@@ -597,6 +732,7 @@ void MotionCore::sendLoop()
 			std::vector<unsigned char> buffer(bufferSize);
 			std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
 			commonSendPacket->_sendMotionPacket.FrameCounter++;
+			//std::cout << commonSendPacket->_sendMotionPacket.motionCommand << '\n';
 
 			sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
 		}
@@ -607,10 +743,11 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		std::memcpy(&commonRecvPacket->_recvMotionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(MotionPacket));
-
-		MotionPacket motionPacket = { 0 };
-		std::memcpy(&motionPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(MotionPacket));
+		std::memcpy(&commonRecvPacket->_recvMotionPacket, buffer.data(), sizeof(MotionPacket));
+		/*std::cout << '\n';
+		std::cout << "RECV motionStatus1: " << commonRecvPacket->_recvMotionPacket.motionStatus << "\n";
+		std::cout << "errorLevel1: " << commonRecvPacket->_recvMotionPacket.errorLevel << "\n";
+		std::cout << "errorCode1: " << commonRecvPacket->_recvMotionPacket.errorCode << "\n";*/
 
 		/*std::cout << "FrameCounter1: " << motionPacket.FrameCounter << " ";
 		std::cout << "motionStatus1: " << motionPacket.motionStatus << " ";
@@ -665,17 +802,13 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	{
 		if (commonRecvPacket->_recvMotionPacket.motionStatus > 10) return;
 
-		if (isRunTimemachine.load())
-		{
-			isRunTimemachine.store(false);
-			commonRecvPacket->_recvCustomCorePacket = { 0 };
-			sendTimemachinePkt.clear();
-		}
-
 		std::memcpy(&commonSendPacket->_sendMotionPacket, buffer.data(), sizeof(SendMotionPacket));
+		//std::cout << "SEND motionCommand: " << commonSendPacket->_sendMotionPacket.motionCommand << '\n';
 		/*std::cout << "FrameCounter: " << commonSendPacket->_sendMotionPacket.FrameCounter << '\n';
 		std::cout << "motionCommand: " << commonSendPacket->_sendMotionPacket.motionCommand << '\n';
-		std::cout << "turb10AmpZ: " << commonSendPacket->_sendMotionPacket.turb10AmpZ << '\n';*/
+		std::cout << "psi: " << commonSendPacket->_sendMotionPacket.psi << '\n';
+		std::cout << "theta: " << commonSendPacket->_sendMotionPacket.theta << '\n';
+		std::cout << "phi: " << commonSendPacket->_sendMotionPacket.phi << '\n';*/
 	}
 	catch (const std::exception& e)
 	{
@@ -688,6 +821,10 @@ TimemachineCore::TimemachineCore(const std::string& name, const std::string& ip,
 {
 	_recvPacketSize = sizeof(CustomCorePacket);
 	_tick = 33.3;
+
+	_directSendIp = Utils::getEnv("UE_IP");
+	//_directSendIp ="192.168.0.32";
+	_directSendPort = stoi(Utils::getEnv("UE_TIMEMACHINE_PORT"));
 }
 
 void TimemachineCore::sendLoop()
@@ -701,33 +838,62 @@ void TimemachineCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	std::memcpy(&commonRecvPacket->_recvCustomCorePacket, buffer.data(), sizeof(CustomCorePacket));
-	/*std::cout << "status: " << commonRecvPacket->_recvCustomCorePacket.status << '\n';
+	/*std::cout << '\n';
+	std::cout << "status: " << commonRecvPacket->_recvCustomCorePacket.status << '\n';
 	std::cout << "customer_id: " << commonRecvPacket->_recvCustomCorePacket.customer_id << '\n';*/
+
+	//std::cout << _directSendIp << ":" << _directSendPort << '\n';
+
+	if (commonRecvPacket->_recvCustomCorePacket.status == _status)
+	{
+		sendTo(buffer, _directSendIp, _directSendPort);
+		return;
+	}
+
+	_status = commonRecvPacket->_recvCustomCorePacket.status;
+	sendTo(buffer, _directSendIp, _directSendPort);
 
 	switch (commonRecvPacket->_recvCustomCorePacket.status)
 	{
-		{
-	case 0:
-		isRunTimemachine.store(false);
-		commonRecvPacket->_recvCustomCorePacket = { 0 };
-		sendTimemachinePkt.clear();
-		break;
-		}
 
-		{
+	case 0:
+	{
+		//std::cout << "STATUS 0 BREAK" << '\n';
+		commonRecvPacket->_recvCustomCorePacket = { 0 };
+		sendTimemachinePktByTimestamp.clear();
+		_timemachinePacketSize = 0;
+		_isHandleComplete.store(true);
+		_isMotionComplete.store(true);
+		_isTimemachineMode.store(false, std::memory_order_release);
+		break;
+	}
+
 	case 1:
-		if (sendTimemachinePkt.size() != 0) break;
+	{
+		if (sendTimemachinePktByTimestamp.size() != 0) break;
 
 		auto csvFile = Utils::LoadCSVFiles(commonRecvPacket->_recvCustomCorePacket.customer_id);
+		if (csvFile.size() < 2) return;
+
+		_timemachinePacketSize = csvFile.size() - 1;
 
 		bool isHeader = true;
+		std::string timestamp = csvFile[1][0];
+		int idx = 0;
+
 		for (const auto& row : csvFile)
 		{
 			if (isHeader) {
 				isHeader = false;
 				continue;
 			}
-			if (row.size() < 5) continue; // row가 부족하면 무시
+			if (row.size() < 18) continue; // row가 부족하면 무시
+
+			if (timestamp != row[0])
+			{
+				timestamp = row[0];
+				idx++;
+			}
 
 			SendTimemachinePacket data;
 			data.timestamp = row[0];
@@ -741,19 +907,25 @@ void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 			data.zAcc = std::stod(row[8]);
 			data.rDot = std::stod(row[9]);
 			data.vehicleSpeed = std::stod(row[10]);
+			data.currentGear = row[11][0];
+			data.brakeLamp = std::stoi(row[12]);
+			data.leftLamp = std::stoi(row[13]);
+			data.rightLamp = std::stoi(row[14]);
+			data.alertLamp = std::stoi(row[15]);
+			data.reverseLamp = std::stoi(row[16]);
+			data.headLamp = std::stoi(row[17]);
 
-			sendTimemachinePkt.push_back(data);
+			sendTimemachinePktByTimestamp[idx].push_back(data);
 		}
-		isRunTimemachine.store(false);
 
 		break;
-		}
+	}
 
-		{
 	case 2:
-		isRunTimemachine.store(true);
-		break;
-		}
+	{
+		_isHandleComplete.store(false);
+		_isMotionComplete.store(false);
+		_isTimemachineMode.store(true, std::memory_order_release);
+	}
 	}
 }
-
