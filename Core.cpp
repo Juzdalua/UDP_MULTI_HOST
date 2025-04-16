@@ -851,6 +851,9 @@ void MotionCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	}
 }
 
+/*-----------------
+	Timemachine Core
+-----------------*/
 TimemachineCore::TimemachineCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
 	: Core(name, ip, port, clientIp, clientPort, peerType)
 {

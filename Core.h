@@ -123,7 +123,7 @@ public:
 };
 
 /*-----------------
-	Custom Core
+	Timemachine Core
 -----------------*/
 class TimemachineCore : public Core
 {
