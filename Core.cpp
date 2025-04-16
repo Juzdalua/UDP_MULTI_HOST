@@ -983,6 +983,7 @@ void CheckConnectionCore::sendLoop()
 		const int bufferSize = sizeof(SendCheckConnectionPacket);
 		commonSendPacket->_sendCheckConnectionPacket.handleStatus = commonRecvPacket->_recvSteerPacket.status;
 		commonSendPacket->_sendCheckConnectionPacket.cabinControlStatus = commonRecvPacket->_recvCabinControlPacket.status;
+		commonSendPacket->_sendCheckConnectionPacket.cabinControldigitalInput = commonRecvPacket->_recvCabinControlPacket.digitalInput;
 		commonSendPacket->_sendCheckConnectionPacket.cabinSwitchAccPedal = commonRecvPacket->_recvCabinSwitchPacket.ACCpedal;
 		commonSendPacket->_sendCheckConnectionPacket.motionFrameCounter = commonRecvPacket->_recvMotionPacket.FrameCounter;
 		commonSendPacket->_sendCheckConnectionPacket.motionStatus = commonRecvPacket->_recvMotionPacket.motionStatus;

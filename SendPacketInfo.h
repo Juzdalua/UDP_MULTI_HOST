@@ -167,6 +167,7 @@ struct SendTimemachinePacket {
 struct SendCheckConnectionPacket {
 	unsigned __int32 handleStatus;
 	unsigned __int16 cabinControlStatus;
+	unsigned __int16 cabinControldigitalInput;
 	unsigned char cabinSwitchAccPedal;
 	uint32_t motionFrameCounter;
 	uint32_t motionStatus;
