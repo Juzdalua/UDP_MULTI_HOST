@@ -145,6 +145,9 @@ struct CustomCorePacket
 class CommonRecvPacket
 {
 public:
+	SteerPacket _recvSteerPacket = { 0 };
+	CabinControlPacket _recvCabinControlPacket = { 0 };
+	CabinSwitchPacket _recvCabinSwitchPacket = { 0 };
 	MotionPacket _recvMotionPacket = { 0 };
 	CustomCorePacket _recvCustomCorePacket = { 0 };
 };

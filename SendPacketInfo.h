@@ -161,7 +161,22 @@ struct SendTimemachinePacket {
 #pragma pack(pop)
 
 /*------------------------------
+	CheckConnectin
+------------------------------*/
+#pragma pack(push, 1)
+struct SendCheckConnectionPacket {
+	unsigned __int32 handleStatus;
+	unsigned __int16 cabinControlStatus;
+	unsigned char cabinSwitchAccPedal;
+	uint32_t motionFrameCounter;
+	uint32_t motionStatus;
+	uint32_t motionErrorLevel;
+	uint32_t motionErrorCode;
+};
+#pragma pack(pop)
 
+/*------------------------------
+	CommonSendPacket
 ------------------------------*/
 class CommonSendPacket
 {
@@ -170,5 +185,6 @@ public:
 	SendCabinControlPacket _sendCabinControlPacket = { 0 };
 	SendCabinSwitchPacket _sendCabinSwitchPacket = { 'P',0,0,0,0,0,0 };
 	SendMotionPacket _sendMotionPacket = { 0 };
+	SendCheckConnectionPacket _sendCheckConnectionPacket = { 0 };
 };
 extern std::shared_ptr<CommonSendPacket> commonSendPacket;

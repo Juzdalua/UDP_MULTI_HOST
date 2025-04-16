@@ -96,6 +96,20 @@ int main()
 		return 0;
 	}
 
+	// CheckConnectionCore 세팅
+	int hostCheckConnectionPort = stoi(Utils::getEnv("CHECK_CONNECTION_HOST"));
+	int receiverCheckConnectionPort = stoi(Utils::getEnv("CUSTOM_UDP_SERVER"));
+	try
+	{
+		std::shared_ptr<CheckConnectionCore> hostCheckConnectionCore = std::make_shared<CheckConnectionCore>("CheckConnection", hostIp, hostCheckConnectionPort, hostIp, receiverCheckConnectionPort, PeerType::INNO);
+		cores.emplace_back(hostCheckConnectionCore);
+	}
+	catch (const std::exception& e)
+	{
+		Utils::LogError("Main inno init error: " + std::string(e.what()), "main");
+		return 0;
+	}
+
 	// 호스트 스레드 구동
 	for (auto& core : cores) {
 		core->start();

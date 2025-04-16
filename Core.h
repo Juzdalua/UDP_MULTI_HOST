@@ -137,6 +137,19 @@ public:
 	int _status = -1;
 };
 
+/*-----------------
+	CheckConnection Core
+-----------------*/
+class CheckConnectionCore : public Core
+{
+public:
+	CheckConnectionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType);
+	void sendLoop() override;
+
+	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
+	void handleUePacket(const std::vector<unsigned char>& buffer) override;
+};
+
 extern std::map<int, std::vector<SendTimemachinePacket>> sendTimemachinePktByTimestamp;
 
 extern int _timemachinePacketSize;

@@ -336,12 +336,11 @@ void HandleCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		SteerPacket steerPacket = { 0 };
-		std::memcpy(&steerPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SteerPacket));
+		std::memcpy(&commonRecvPacket->_recvSteerPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(SteerPacket));
 
-		/*std::cout << " status: " << steerPacket.status;
-		std::cout << " steerAngle: " << steerPacket.steerAngle;
-		std::cout << " steerAngleRate: " << steerPacket.steerAngleRate;
+		/*std::cout << " status: " << &commonRecvPacket->_recvSteerPacket.status;
+		std::cout << " steerAngle: " << &commonRecvPacket->_recvSteerPacket.steerAngle;
+		std::cout << " steerAngleRate: " << &commonRecvPacket->_recvSteerPacket.steerAngleRate;
 		std::cout << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
@@ -418,14 +417,13 @@ void CabinControlCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 {
 	try
 	{
-		/*CabinControlPacket cabinControlPacket = { 0 };
-		std::memcpy(&cabinControlPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(CabinControlPacket));
+		std::memcpy(&commonRecvPacket->_recvCabinControlPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(CabinControlPacket));
 
-		std::cout << " status: " << cabinControlPacket.status;
-		std::cout << " carHeight: " << cabinControlPacket.carHeight;
-		std::cout << " carWidth: " << cabinControlPacket.carWidth;
-		std::cout << " seatWidth: " << cabinControlPacket.seatWidth;
-		std::cout << " digitalInput: " << cabinControlPacket.digitalInput;
+		/*std::cout << " status: " << commonRecvPacket->_recvCabinControlPacket.status;
+		std::cout << " carHeight: " << commonRecvPacket->_recvCabinControlPacket.carHeight;
+		std::cout << " carWidth: " << commonRecvPacket->_recvCabinControlPacket.carWidth;
+		std::cout << " seatWidth: " << commonRecvPacket->_recvCabinControlPacket.seatWidth;
+		std::cout << " digitalInput: " << commonRecvPacket->_recvCabinControlPacket.digitalInput;
 		std::cout << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
@@ -555,66 +553,65 @@ void CanbinSwitchCore::handleInnoPacket(const std::vector<unsigned char>& buffer
 {
 	try
 	{
-		/*CabinSwitchPacket cabinSwitchPacket = {0};
-		std::memcpy(&cabinSwitchPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(CabinSwitchPacket));
+		std::memcpy(&commonRecvPacket->_recvCabinSwitchPacket, buffer.data() + sizeof(RecvPacketHeader), sizeof(CabinSwitchPacket));
 
-		std::cout << " GearTriger: " << (int)cabinSwitchPacket.GearTriger;
-		std::cout << " GearP: " << (int)cabinSwitchPacket.GearP;
-		std::cout << " Left_Paddle_Shift: " << (int)cabinSwitchPacket.Left_Paddle_Shift;
-		std::cout << " Right_Paddle_Shift: " << (int)cabinSwitchPacket.Right_Paddle_Shift;
-		std::cout << " Crs: " << (int)cabinSwitchPacket.Crs;
-		std::cout << " voice: " << (int)cabinSwitchPacket.voice;
-		std::cout << " phone: " << (int)cabinSwitchPacket.phone;
-		std::cout << " mode: " << (int)cabinSwitchPacket.mode;
-		std::cout << " modeUp: " << (int)cabinSwitchPacket.modeUp;
-		std::cout << " modeDown: " << (int)cabinSwitchPacket.modeDown;
-		std::cout << " volumeMute: " << (int)cabinSwitchPacket.volumeMute;
-		std::cout << " volumeWheel: " << (int)cabinSwitchPacket.volumeWheel;
-		std::cout << " Menu: " << (int)cabinSwitchPacket.Menu;
-		std::cout << " MenuWheelbtn: " << (int)cabinSwitchPacket.MenuWheelbtn;
-		std::cout << " Menuwheel: " << (int)cabinSwitchPacket.Menuwheel;
-		std::cout << " bookmark: " << (int)cabinSwitchPacket.bookmark;
-		std::cout << " Lamp_TrnSigLftSwSta: " << (int)cabinSwitchPacket.Lamp_TrnSigLftSwSta;
-		std::cout << " Lamp_TrnSigRtSwSta: " << (int)cabinSwitchPacket.Lamp_TrnSigRtSwSta;
-		std::cout << " Light: " << (int)cabinSwitchPacket.Light;
-		std::cout << " Lamp_HdLmpHiSwSta1: " << (int)cabinSwitchPacket.Lamp_HdLmpHiSwSta1;
-		std::cout << " Lamp_HdLmpHiSwSta2: " << (int)cabinSwitchPacket.Lamp_HdLmpHiSwSta2;
-		std::cout << " Wiper_FrWiperMist: " << (int)cabinSwitchPacket.Wiper_FrWiperMist;
-		std::cout << " Wiper_FrWiperWshSwSta: " << (int)cabinSwitchPacket.Wiper_FrWiperWshSwSta;
-		std::cout << " Wiper_FrWiperWshSwSta2: " << (int)cabinSwitchPacket.Wiper_FrWiperWshSwSta2;
-		std::cout << " Wiper_RrWiperWshSwSta: " << (int)cabinSwitchPacket.Wiper_RrWiperWshSwSta;
-		std::cout << " NGB: " << (int)cabinSwitchPacket.NGB;
-		std::cout << " DriveModeSw: " << (int)cabinSwitchPacket.DriveModeSw;
-		std::cout << " LeftN: " << (int)cabinSwitchPacket.LeftN;
-		std::cout << " RightN: " << (int)cabinSwitchPacket.RightN;
-		std::cout << " HOD_Dir_Status: " << (int)cabinSwitchPacket.HOD_Dir_Status;
-		std::cout << " FWasher: " << (int)cabinSwitchPacket.FWasher;
-		std::cout << " Parking: " << (int)cabinSwitchPacket.Parking;
-		std::cout << " SeatBelt1: " << (int)cabinSwitchPacket.SeatBelt1;
-		std::cout << " SeatBelt2: " << (int)cabinSwitchPacket.SeatBelt2;
-		std::cout << " EMG: " << (int)cabinSwitchPacket.EMG;
-		std::cout << " Key: " << (int)cabinSwitchPacket.Key;
-		std::cout << " Trunk: " << (int)cabinSwitchPacket.Trunk;
-		std::cout << " VDC: " << (int)cabinSwitchPacket.VDC;
-		std::cout << " Booster: " << (int)cabinSwitchPacket.Booster;
-		std::cout << " Plus: " << (int)cabinSwitchPacket.Plus;
-		std::cout << " Right: " << (int)cabinSwitchPacket.Right;
-		std::cout << " Minus: " << (int)cabinSwitchPacket.Minus;
-		std::cout << " Voice: " << (int)cabinSwitchPacket.Voice;
-		std::cout << " OK: " << (int)cabinSwitchPacket.OK;
-		std::cout << " Left: " << (int)cabinSwitchPacket.Left;
-		std::cout << " Phone: " << (int)cabinSwitchPacket.Phone;
-		std::cout << " PlusSet: " << (int)cabinSwitchPacket.PlusSet;
-		std::cout << " Distance: " << (int)cabinSwitchPacket.Distance;
-		std::cout << " MinusSet: " << (int)cabinSwitchPacket.MinusSet;
-		std::cout << " LFA: " << (int)cabinSwitchPacket.LFA;
-		std::cout << " SCC: " << (int)cabinSwitchPacket.SCC;
-		std::cout << " CC: " << (int)cabinSwitchPacket.CC;
-		std::cout << " DriveMode: " << (int)cabinSwitchPacket.DriveMode;
-		std::cout << " LightHeight: " << (int)cabinSwitchPacket.LightHeight;
-		std::cout << " ACCpedal: " << (int)cabinSwitchPacket.ACCpedal;
-		std::cout << " Brakepedal: " << (int)cabinSwitchPacket.Brakepedal;
-		std::cout << " bMask: " << (int)cabinSwitchPacket.bMask;
+		/*std::cout << " GearTriger: " << (int)commonRecvPacket->_recvCabinSwitchPacket.GearTriger;
+		std::cout << " GearP: " << (int)commonRecvPacket->_recvCabinSwitchPacket.GearP;
+		std::cout << " Left_Paddle_Shift: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Left_Paddle_Shift;
+		std::cout << " Right_Paddle_Shift: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Right_Paddle_Shift;
+		std::cout << " Crs: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Crs;
+		std::cout << " voice: " << (int)commonRecvPacket->_recvCabinSwitchPacket.voice;
+		std::cout << " phone: " << (int)commonRecvPacket->_recvCabinSwitchPacket.phone;
+		std::cout << " mode: " << (int)commonRecvPacket->_recvCabinSwitchPacket.mode;
+		std::cout << " modeUp: " << (int)commonRecvPacket->_recvCabinSwitchPacket.modeUp;
+		std::cout << " modeDown: " << (int)commonRecvPacket->_recvCabinSwitchPacket.modeDown;
+		std::cout << " volumeMute: " << (int)commonRecvPacket->_recvCabinSwitchPacket.volumeMute;
+		std::cout << " volumeWheel: " << (int)commonRecvPacket->_recvCabinSwitchPacket.volumeWheel;
+		std::cout << " Menu: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Menu;
+		std::cout << " MenuWheelbtn: " << (int)commonRecvPacket->_recvCabinSwitchPacket.MenuWheelbtn;
+		std::cout << " Menuwheel: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Menuwheel;
+		std::cout << " bookmark: " << (int)commonRecvPacket->_recvCabinSwitchPacket.bookmark;
+		std::cout << " Lamp_TrnSigLftSwSta: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Lamp_TrnSigLftSwSta;
+		std::cout << " Lamp_TrnSigRtSwSta: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Lamp_TrnSigRtSwSta;
+		std::cout << " Light: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Light;
+		std::cout << " Lamp_HdLmpHiSwSta1: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Lamp_HdLmpHiSwSta1;
+		std::cout << " Lamp_HdLmpHiSwSta2: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Lamp_HdLmpHiSwSta2;
+		std::cout << " Wiper_FrWiperMist: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Wiper_FrWiperMist;
+		std::cout << " Wiper_FrWiperWshSwSta: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Wiper_FrWiperWshSwSta;
+		std::cout << " Wiper_FrWiperWshSwSta2: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Wiper_FrWiperWshSwSta2;
+		std::cout << " Wiper_RrWiperWshSwSta: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Wiper_RrWiperWshSwSta;
+		std::cout << " NGB: " << (int)commonRecvPacket->_recvCabinSwitchPacket.NGB;
+		std::cout << " DriveModeSw: " << (int)commonRecvPacket->_recvCabinSwitchPacket.DriveModeSw;
+		std::cout << " LeftN: " << (int)commonRecvPacket->_recvCabinSwitchPacket.LeftN;
+		std::cout << " RightN: " << (int)commonRecvPacket->_recvCabinSwitchPacket.RightN;
+		std::cout << " HOD_Dir_Status: " << (int)commonRecvPacket->_recvCabinSwitchPacket.HOD_Dir_Status;
+		std::cout << " FWasher: " << (int)commonRecvPacket->_recvCabinSwitchPacket.FWasher;
+		std::cout << " Parking: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Parking;
+		std::cout << " SeatBelt1: " << (int)commonRecvPacket->_recvCabinSwitchPacket.SeatBelt1;
+		std::cout << " SeatBelt2: " << (int)commonRecvPacket->_recvCabinSwitchPacket.SeatBelt2;
+		std::cout << " EMG: " << (int)commonRecvPacket->_recvCabinSwitchPacket.EMG;
+		std::cout << " Key: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Key;
+		std::cout << " Trunk: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Trunk;
+		std::cout << " VDC: " << (int)commonRecvPacket->_recvCabinSwitchPacket.VDC;
+		std::cout << " Booster: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Booster;
+		std::cout << " Plus: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Plus;
+		std::cout << " Right: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Right;
+		std::cout << " Minus: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Minus;
+		std::cout << " Voice: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Voice;
+		std::cout << " OK: " << (int)commonRecvPacket->_recvCabinSwitchPacket.OK;
+		std::cout << " Left: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Left;
+		std::cout << " Phone: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Phone;
+		std::cout << " PlusSet: " << (int)commonRecvPacket->_recvCabinSwitchPacket.PlusSet;
+		std::cout << " Distance: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Distance;
+		std::cout << " MinusSet: " << (int)commonRecvPacket->_recvCabinSwitchPacket.MinusSet;
+		std::cout << " LFA: " << (int)commonRecvPacket->_recvCabinSwitchPacket.LFA;
+		std::cout << " SCC: " << (int)commonRecvPacket->_recvCabinSwitchPacket.SCC;
+		std::cout << " CC: " << (int)commonRecvPacket->_recvCabinSwitchPacket.CC;
+		std::cout << " DriveMode: " << (int)commonRecvPacket->_recvCabinSwitchPacket.DriveMode;
+		std::cout << " LightHeight: " << (int)commonRecvPacket->_recvCabinSwitchPacket.LightHeight;
+		std::cout << " ACCpedal: " << (int)commonRecvPacket->_recvCabinSwitchPacket.ACCpedal;
+		std::cout << " Brakepedal: " << (int)commonRecvPacket->_recvCabinSwitchPacket.Brakepedal;
+		std::cout << " bMask: " << (int)commonRecvPacket->_recvCabinSwitchPacket.bMask;
 		std::cout << '\n';*/
 
 		sendTo(buffer, _directSendIp, _directSendPort);
@@ -965,4 +962,44 @@ void TimemachineCore::handleUePacket(const std::vector<unsigned char>& buffer)
 		_isTimemachineMode.store(true, std::memory_order_release);
 	}
 	}
+}
+
+CheckConnectionCore::CheckConnectionCore(const std::string& name, const std::string& ip, unsigned short port, const std::string& clientIp, unsigned short clientPort, PeerType peerType)
+	: Core(name, ip, port, clientIp, clientPort, peerType)
+
+{
+	_tick = 500;
+}
+
+void CheckConnectionCore::sendLoop()
+{
+	while (_running)
+	{
+		long long now = Utils::GetNowTimeMs();
+		if (now - _lastSendMs < _tick) continue;
+
+		_lastSendMs = now;
+
+		const int bufferSize = sizeof(SendCheckConnectionPacket);
+		commonSendPacket->_sendCheckConnectionPacket.handleStatus = commonRecvPacket->_recvSteerPacket.status;
+		commonSendPacket->_sendCheckConnectionPacket.cabinControlStatus = commonRecvPacket->_recvCabinControlPacket.status;
+		commonSendPacket->_sendCheckConnectionPacket.cabinSwitchAccPedal = commonRecvPacket->_recvCabinSwitchPacket.ACCpedal;
+		commonSendPacket->_sendCheckConnectionPacket.motionFrameCounter = commonRecvPacket->_recvMotionPacket.FrameCounter;
+		commonSendPacket->_sendCheckConnectionPacket.motionStatus = commonRecvPacket->_recvMotionPacket.motionStatus;
+		commonSendPacket->_sendCheckConnectionPacket.motionErrorLevel = commonRecvPacket->_recvMotionPacket.errorLevel;
+		commonSendPacket->_sendCheckConnectionPacket.motionErrorCode = commonRecvPacket->_recvMotionPacket.errorCode;
+		
+		std::vector<unsigned char> buffer(bufferSize);
+		std::memcpy(buffer.data(), &commonSendPacket->_sendCheckConnectionPacket, sizeof(SendCheckConnectionPacket));
+
+		sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+	}
+}
+
+void CheckConnectionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
+{
+}
+
+void CheckConnectionCore::handleUePacket(const std::vector<unsigned char>& buffer)
+{
 }
