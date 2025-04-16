@@ -861,7 +861,6 @@ TimemachineCore::TimemachineCore(const std::string& name, const std::string& ip,
 	_tick = 33.3;
 
 	_directSendIp = Utils::getEnv("UE_IP");
-	//_directSendIp ="192.168.0.32";
 	_directSendPort = stoi(Utils::getEnv("UE_TIMEMACHINE_PORT"));
 }
 
