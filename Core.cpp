@@ -438,6 +438,37 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
+		SendCabinControlPacket pkt = { 0 };
+		std::memcpy(&pkt, buffer.data(), sizeof(SendCabinControlPacket));
+		
+		commonSendPacket->_sendCabinControlPacket.command = pkt.command;
+		commonSendPacket->_sendCabinControlPacket.handleStrength = pkt.handleStrength;
+		commonSendPacket->_sendCabinControlPacket.seatBeltStrength = pkt.seatBeltStrength;
+		commonSendPacket->_sendCabinControlPacket.manual = pkt.manual;
+		commonSendPacket->_sendCabinControlPacket.height = pkt.height;
+		commonSendPacket->_sendCabinControlPacket.width = pkt.width;
+		commonSendPacket->_sendCabinControlPacket.seatHeight = pkt.seatHeight;
+
+		switch (pkt.activationFlag)
+		{
+		case 0:
+			setHandleHaptic(false);
+			setSeatBeltHaptic(false);
+			break;
+		case 1:
+			setHandleHaptic(false);
+			break;
+		case 2:
+			setHandleHaptic(true);
+			break;
+		case 3:
+			setSeatBeltHaptic(false);
+			break;
+		case 4:
+			setSeatBeltHaptic(true);
+			break;
+		}
+
 		std::memcpy(&commonSendPacket->_sendCabinControlPacket, buffer.data(), sizeof(SendCabinControlPacket));
 		/*std::cout << "command: " << commonSendPacket->_sendCabinControlPacket.command << '\n';
 		std::cout << "seatHeight: " << commonSendPacket->_sendCabinControlPacket.seatHeight << '\n';*/
@@ -446,6 +477,18 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	{
 		Utils::LogError("CabinControlCore::handleUePacket Parse error: " + std::string(e.what()), "CabinControlCore::handleUePacket");
 	}
+}
+
+void CabinControlCore::setHandleHaptic(bool isOn)
+{
+	if (isOn) commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 0);
+	else commonSendPacket->_sendCabinControlPacket.activationFlag &= ~(1 << 0);
+}
+
+void CabinControlCore::setSeatBeltHaptic(bool isOn)
+{
+	if (isOn) commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 1);
+	else commonSendPacket->_sendCabinControlPacket.activationFlag &= ~(1 << 1);
 }
 
 /*-----------------
@@ -627,7 +670,7 @@ void CanbinSwitchCore::handleUePacket(const std::vector<unsigned char>& buffer)
 	try
 	{
 		std::memcpy(&commonSendPacket->_sendCabinSwitchPacket, buffer.data(), sizeof(SendCabinSwitchPacket));
-		
+
 		/*std::cout << "HANDLE UE" << '\n';
 		std::cout << "currentGear: " << commonSendPacket->_sendCabinSwitchPacket.currentGear << '\n';
 		std::cout << "brakeLamp: " << commonSendPacket->_sendCabinSwitchPacket.brakeLamp - 0 << '\n';
@@ -983,13 +1026,13 @@ void CheckConnectionCore::sendLoop()
 		const int bufferSize = sizeof(SendCheckConnectionPacket);
 		commonSendPacket->_sendCheckConnectionPacket.handleStatus = commonRecvPacket->_recvSteerPacket.status;
 		commonSendPacket->_sendCheckConnectionPacket.cabinControlStatus = commonRecvPacket->_recvCabinControlPacket.status;
-		commonSendPacket->_sendCheckConnectionPacket.cabinControldigitalInput = commonRecvPacket->_recvCabinControlPacket.digitalInput;
+		commonSendPacket->_sendCheckConnectionPacket.cabinControlDigitalInput = commonRecvPacket->_recvCabinControlPacket.digitalInput;
 		commonSendPacket->_sendCheckConnectionPacket.cabinSwitchAccPedal = commonRecvPacket->_recvCabinSwitchPacket.ACCpedal;
 		commonSendPacket->_sendCheckConnectionPacket.motionFrameCounter = commonRecvPacket->_recvMotionPacket.FrameCounter;
 		commonSendPacket->_sendCheckConnectionPacket.motionStatus = commonRecvPacket->_recvMotionPacket.motionStatus;
 		commonSendPacket->_sendCheckConnectionPacket.motionErrorLevel = commonRecvPacket->_recvMotionPacket.errorLevel;
 		commonSendPacket->_sendCheckConnectionPacket.motionErrorCode = commonRecvPacket->_recvMotionPacket.errorCode;
-		
+
 		std::vector<unsigned char> buffer(bufferSize);
 		std::memcpy(buffer.data(), &commonSendPacket->_sendCheckConnectionPacket, sizeof(SendCheckConnectionPacket));
 

@@ -60,7 +60,7 @@ protected:
 	std::atomic<bool> _running = false;
 
 protected:
-	
+
 	long long _lastSendMs = 0;
 	int _tick = 0;
 
@@ -94,6 +94,11 @@ public:
 
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
+
+	void setHandleHaptic(bool isOn);
+	void setSeatBeltHaptic(bool isOn);
+
+	//uint16_t _hapticBit = 0b0000'0000'0000'0000;
 };
 
 /*-----------------
@@ -119,7 +124,7 @@ public:
 	void sendLoop() override;
 
 	void handleInnoPacket(const std::vector<unsigned char>& buffer) override;
-	void handleUePacket(const std::vector<unsigned char>& buffer) override;	
+	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 };
 
 /*-----------------

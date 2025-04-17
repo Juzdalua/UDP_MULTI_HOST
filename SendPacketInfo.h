@@ -26,7 +26,7 @@ struct SendHandlePacket
 #pragma pack(push, 1) 
 struct SendCabinControlPacket {
 	unsigned __int16 command;
-	unsigned __int16 avtivation;
+	unsigned __int16 activationFlag; // 0-모두off 1-핸들off 2-핸들on 3-벨트off 4-벨트on
 	unsigned __int16 handleStrength;
 	unsigned __int16 seatBeltStrength;
 	unsigned __int16 manual;
@@ -167,7 +167,7 @@ struct SendTimemachinePacket {
 struct SendCheckConnectionPacket {
 	unsigned __int32 handleStatus;
 	unsigned __int16 cabinControlStatus;
-	unsigned __int16 cabinControldigitalInput;
+	unsigned __int16 cabinControlDigitalInput;
 	unsigned char cabinSwitchAccPedal;
 	uint32_t motionFrameCounter;
 	uint32_t motionStatus;
