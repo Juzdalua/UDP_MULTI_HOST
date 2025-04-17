@@ -99,6 +99,8 @@ public:
 	void setSeatBeltHaptic(bool isOn);
 
 	//uint16_t _hapticBit = 0b0000'0000'0000'0000;
+	int _adjustHandleStrength = 13'000;
+	int _adjustSeatBeltStrength = 11'000;
 };
 
 /*-----------------

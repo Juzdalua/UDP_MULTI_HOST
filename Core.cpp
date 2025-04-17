@@ -403,7 +403,8 @@ void CabinControlCore::sendLoop()
 		std::vector<unsigned char> buffer(bufferSize);
 
 		// test
-		//commonSendPacket->_sendCabinControlPacket.avtivation = 
+		/*setSeatBeltHaptic(false);
+		commonSendPacket->_sendCabinControlPacket.seatBeltStrength = _adjustSeatBeltStrength;*/
 
 		std::memcpy(buffer.data(), &commonSendPacket->_sendCabinControlPacket, sizeof(SendCabinControlPacket));
 
