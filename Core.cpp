@@ -763,41 +763,6 @@ void MotionCore::sendLoop()
 			//std::cout << "MOTION DONE" << '\n';
 			_isMotionComplete.store(true, std::memory_order_release);
 		}
-		// 타임머신 리플레이
-		//if (isRunTimemachine.load() && !_isMotionComplete.load())
-		//{
-		//	std::cout << "MOTION CHECK SIZE = " << sendTimemachinePkt.size() << '\n';
-		//	auto localCopy = sendTimemachinePkt;
-		//	for (size_t i = 0; i < localCopy.size(); ++i)
-		//	{
-		//		ii = i;
-		//		if (!isRunTimemachine.load())
-		//		{
-		//			std::cout << "MOTION CHECK SIZE = " << localCopy.size() << '\n';
-		//			std::cout << "BREAK MO " << i << '\n';
-		//			break;
-		//		}
-
-		//		commonSendPacket->_sendMotionPacket.psi = localCopy[i].yaw;
-		//		commonSendPacket->_sendMotionPacket.theta = localCopy[i].pitch;
-		//		commonSendPacket->_sendMotionPacket.phi = localCopy[i].roll;
-		//		commonSendPacket->_sendMotionPacket.xAcc = localCopy[i].xAcc;
-		//		commonSendPacket->_sendMotionPacket.yAcc = localCopy[i].yAcc;
-		//		commonSendPacket->_sendMotionPacket.zAcc = localCopy[i].zAcc;
-		//		commonSendPacket->_sendMotionPacket.rDot = localCopy[i].rDot;
-		//		commonSendPacket->_sendMotionPacket.vehicleSpeed = localCopy[i].vehicleSpeed;
-		//		commonSendPacket->_sendMotionPacket.FrameCounter++;
-
-		//		std::vector<unsigned char> buffer(bufferSize);
-		//		std::memcpy(buffer.data(), &commonSendPacket->_sendMotionPacket, sizeof(SendMotionPacket));
-		//		sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
-		//	}
-
-		//	std::cout << "DONE MO " << ii << '\n';
-		//	//isRunTimemachine.store(false);
-		//	_isMotionComplete.store(true);
-		//	if (_isHandleComplete.load()) isRunTimemachine.store(false);
-		//}
 
 		// 일반 주행
 		else
