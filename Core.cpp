@@ -492,10 +492,26 @@ void CabinControlCore::setHandleHaptic(bool isOn)
 	else commonSendPacket->_sendCabinControlPacket.activationFlag &= ~(1 << 0);
 }
 
-void CabinControlCore::setSeatBeltHaptic(bool isOn)
+void CabinControlCore::setSeatBeltHaptic(bool isOn, int interval)
 {
-	if (isOn) commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 1);
-	else commonSendPacket->_sendCabinControlPacket.activationFlag &= ~(1 << 1);
+	commonSendPacket->_sendCabinControlPacket.activationFlag &= _beltHapticOffBit;
+	if (!isOn) return;
+
+	switch (interval)
+	{
+	default:
+	case 0:
+		commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 1);
+		break;
+	
+	case 1:
+		commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 2);
+		break;
+
+	case 2:
+		commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 3);
+		break;
+	}
 }
 
 /*-----------------

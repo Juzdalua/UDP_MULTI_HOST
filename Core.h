@@ -96,9 +96,10 @@ public:
 	void handleUePacket(const std::vector<unsigned char>& buffer) override;
 
 	void setHandleHaptic(bool isOn);
-	void setSeatBeltHaptic(bool isOn);
+	void setSeatBeltHaptic(bool isOn, int interval = 0);
 
 	//uint16_t _hapticBit = 0b0000'0000'0000'0000;
+	uint16_t _beltHapticOffBit = 0b0000'0000'0000'0001;
 	int _adjustHandleStrength = 13'000;
 	int _adjustSeatBeltStrength = 11'000;
 };
