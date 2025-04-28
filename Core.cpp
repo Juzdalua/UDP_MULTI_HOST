@@ -474,6 +474,12 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 		case 4:
 			setSeatBeltHaptic(true);
 			break;
+		case 5:
+			setSeatBeltHaptic(true, 1);
+			break;
+		case 6:
+			setSeatBeltHaptic(true, 2);
+			break;
 		}
 
 		std::memcpy(&commonSendPacket->_sendCabinControlPacket, buffer.data(), sizeof(SendCabinControlPacket));
@@ -489,13 +495,21 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 void CabinControlCore::setHandleHaptic(bool isOn)
 {
 	if (isOn) commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 0);
-	else commonSendPacket->_sendCabinControlPacket.activationFlag &= ~(1 << 0);
+	else
+	{
+		commonSendPacket->_sendCabinControlPacket.handleStrength = 0;
+		commonSendPacket->_sendCabinControlPacket.activationFlag &= ~(1 << 0);
+	}
 }
 
 void CabinControlCore::setSeatBeltHaptic(bool isOn, int interval)
 {
 	commonSendPacket->_sendCabinControlPacket.activationFlag &= _beltHapticOffBit;
-	if (!isOn) return;
+	if (!isOn)
+	{
+		commonSendPacket->_sendCabinControlPacket.seatBeltStrength = 0;
+		return;
+	}
 
 	switch (interval)
 	{
@@ -503,7 +517,7 @@ void CabinControlCore::setSeatBeltHaptic(bool isOn, int interval)
 	case 0:
 		commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 1);
 		break;
-	
+
 	case 1:
 		commonSendPacket->_sendCabinControlPacket.activationFlag |= (1 << 2);
 		break;
