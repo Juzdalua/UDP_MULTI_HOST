@@ -820,14 +820,11 @@ void MotionCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 {
 	try
 	{
-		/*MotionPacket pkt = {0};
-		std::memcpy(&pkt, buffer.data(), sizeof(MotionPacket));
-		std::cout << '\n';
-		std::cout << "RECV motionStatus1: " << pkt.motionStatus << "\n";
-		std::cout << "errorLevel1: " << pkt.errorLevel << "\n";
-		std::cout << "errorCode1: " << pkt.errorCode << "\n";*/
-
 		std::memcpy(&commonRecvPacket->_recvMotionPacket, buffer.data(), sizeof(MotionPacket));
+		/*std::cout << '\n';
+		std::cout << "RECV motionStatus1: " << commonRecvPacket->_recvMotionPacket.motionStatus << "\n";
+		std::cout << "errorLevel1: " << commonRecvPacket->_recvMotionPacket.errorLevel << "\n";
+		std::cout << "errorCode1: " << commonRecvPacket->_recvMotionPacket.errorCode << "\n";*/
 
 		/*std::cout << "FrameCounter1: " << motionPacket.FrameCounter << " ";
 		std::cout << "motionStatus1: " << motionPacket.motionStatus << " ";
