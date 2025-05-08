@@ -322,8 +322,9 @@ void HandleCore::sendLoop()
 			_lastSendMs = now;
 
 			std::vector<unsigned char> buffer(bufferSize);
-			/*std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
-			std::cout << "taget angle: " << commonSendPacket->_sendHandlePacket.targetAngle << '\n';
+			std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
+			
+			/*std::cout << "taget angle: " << commonSendPacket->_sendHandlePacket.targetAngle << '\n';
 			std::cout << "velocity: " << commonSendPacket->_sendHandlePacket.velocity << '\n';
 			std::cout << '\n';*/
 
@@ -812,6 +813,7 @@ void MotionCore::sendLoop()
 			//std::cout << commonSendPacket->_sendMotionPacket.motionCommand << '\n';
 
 			sendTo(buffer, _scheduledSendIp, _scheduledSendPort);
+			//sendTo(buffer, _directSendIp, _directSendPort);
 		}
 	}
 }
