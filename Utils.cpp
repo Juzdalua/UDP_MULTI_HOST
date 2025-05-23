@@ -54,19 +54,23 @@ std::string Utils::getEnv(const std::string& key)
 
 std::vector<std::vector<std::string>> Utils::LoadCSVFiles(int customer_id)
 {
-	TCHAR szCurrentDir[MAX_PATH];
+	/*TCHAR szCurrentDir[MAX_PATH];
 	GetCurrentDirectory(MAX_PATH, szCurrentDir);
-
-	// TCHAR -> std::wstring 변환
 	std::wstring wideCurrentDir(szCurrentDir);
 	std::string currentDir(wideCurrentDir.begin(), wideCurrentDir.end());
-
 	std::string relativePath = currentDir + "\\..\\hyundai-nest-project2\\csv\\"+ GetNowTImeYMD();
-
-	// 절대 경로 변환
 	char absolutePath[MAX_PATH];
 	GetFullPathNameA(relativePath.c_str(), MAX_PATH, absolutePath, nullptr);
-	//std::cout << "변환된 절대 경로: " << absolutePath << '\n';
+
+	WIN32_FIND_DATAA findFileData;
+	HANDLE hFind;
+	std::string searchPattern = std::string(absolutePath) + "\\" + std::to_string(customer_id) + "_buck_*.csv";
+	hFind = FindFirstFileA(searchPattern.c_str(), &findFileData);
+	*/
+
+	std::string networkPath = R"(\\192.168.0.40\uxstudio\csv\)" + GetNowTImeYMD();
+	char absolutePath[MAX_PATH];
+	GetFullPathNameA(networkPath.c_str(), MAX_PATH, absolutePath, nullptr);
 
 	WIN32_FIND_DATAA findFileData;
 	HANDLE hFind;
