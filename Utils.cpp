@@ -68,6 +68,7 @@ std::vector<std::vector<std::string>> Utils::LoadCSVFiles(int customer_id)
 	hFind = FindFirstFileA(searchPattern.c_str(), &findFileData);
 	*/
 
+	//std::string networkPath = R"(\\192.168.0.10\Paprika_3TB\5_Personal\ฑ่มุ\csv\)" + GetNowTImeYMD();
 	std::string networkPath = R"(\\192.168.0.40\uxstudio\csv\)" + GetNowTImeYMD();
 	char absolutePath[MAX_PATH];
 	GetFullPathNameA(networkPath.c_str(), MAX_PATH, absolutePath, nullptr);
