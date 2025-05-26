@@ -323,7 +323,7 @@ void HandleCore::sendLoop()
 
 			std::vector<unsigned char> buffer(bufferSize);
 			std::memcpy(buffer.data(), &commonSendPacket->_sendHandlePacket, sizeof(SendHandlePacket));
-			
+
 			/*std::cout << "taget angle: " << commonSendPacket->_sendHandlePacket.targetAngle << '\n';
 			std::cout << "velocity: " << commonSendPacket->_sendHandlePacket.velocity << '\n';
 			std::cout << '\n';*/
@@ -449,13 +449,24 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 		SendCabinControlPacket pkt = { 0 };
 		std::memcpy(&pkt, buffer.data(), sizeof(SendCabinControlPacket));
 
-		commonSendPacket->_sendCabinControlPacket.command = pkt.command;
 		commonSendPacket->_sendCabinControlPacket.handleStrength = pkt.handleStrength;
 		commonSendPacket->_sendCabinControlPacket.seatBeltStrength = pkt.seatBeltStrength;
 		commonSendPacket->_sendCabinControlPacket.manual = pkt.manual;
 		commonSendPacket->_sendCabinControlPacket.height = pkt.height;
 		commonSendPacket->_sendCabinControlPacket.width = pkt.width;
 		commonSendPacket->_sendCabinControlPacket.seatHeight = pkt.seatHeight;
+
+		// 이동 완료시에만 변경
+		if (commonRecvPacket->_recvCabinControlPacket.status > 0 || commonRecvPacket->_recvCabinControlPacket.status < 6)
+		{
+			commonSendPacket->_sendCabinControlPacket.command = pkt.command;
+		}
+
+		// 에러 초기화
+		else if (pkt.command == 255)
+		{
+			commonSendPacket->_sendCabinControlPacket.command = pkt.command;
+		}
 
 		switch (pkt.activationFlag)
 		{
