@@ -342,10 +342,10 @@ void HandleCore::handleInnoPacket(const std::vector<unsigned char>& buffer)
 
 		std::cout << "sNetVersion; " << header.sNetVersion << '\n';
 		std::cout << "sMask; " << header.sMask << '\n';
-		std::cout << "BSIZE: " << (int)header.bSize << '\n';
+		std::cout << "BSIZE: " << (int)header.bSize << '\n';*/
 
 		std::cout << " status: " << commonRecvPacket->_recvSteerPacket.status;
-		std::cout << " steerAngle: " << commonRecvPacket->_recvSteerPacket.steerAngle;
+		/*std::cout << " steerAngle: " << commonRecvPacket->_recvSteerPacket.steerAngle;
 		std::cout << " steerAngleRate: " << commonRecvPacket->_recvSteerPacket.steerAngleRate;
 		std::cout << '\n' << '\n';*/
 
@@ -1043,7 +1043,7 @@ void CheckConnectionCore::sendLoop()
 
 		const int bufferSize = sizeof(SendCheckConnectionPacket);
 		/*std::cout << '\n';
-		std::cout << "handleStatus:" << commonRecvPacket->_recvSteerPacket.status << '\n';
+		std::cout << "handleStatus:" << commonRecvPacket->_recvSteerPacket.steerAngle << '\n';
 		std::cout << "cabinControlStatus:" << commonRecvPacket->_recvSteerPacket.status << '\n';
 		std::cout << "cabinControlDigitalInput:" << commonRecvPacket->_recvSteerPacket.status << '\n';
 		std::cout << "cabinSwitchAccPedal:" << commonRecvPacket->_recvSteerPacket.status << '\n';
@@ -1052,7 +1052,7 @@ void CheckConnectionCore::sendLoop()
 		std::cout << "motionErrorLevel:" << commonRecvPacket->_recvSteerPacket.status << '\n';
 		std::cout << "motionErrorCode:" << commonRecvPacket->_recvSteerPacket.status << '\n';*/
 
-		commonSendPacket->_sendCheckConnectionPacket.handleStatus = commonRecvPacket->_recvSteerPacket.status;
+		commonSendPacket->_sendCheckConnectionPacket.handleStatus = commonRecvPacket->_recvSteerPacket.steerAngle;
 		commonSendPacket->_sendCheckConnectionPacket.cabinControlStatus = commonRecvPacket->_recvCabinControlPacket.status;
 		commonSendPacket->_sendCheckConnectionPacket.cabinControlDigitalInput = commonRecvPacket->_recvCabinControlPacket.digitalInput;
 		commonSendPacket->_sendCheckConnectionPacket.cabinSwitchAccPedal = commonRecvPacket->_recvCabinSwitchPacket.ACCpedal;
