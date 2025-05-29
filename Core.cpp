@@ -495,8 +495,8 @@ void CabinControlCore::handleUePacket(const std::vector<unsigned char>& buffer)
 		}
 
 		std::memcpy(&commonSendPacket->_sendCabinControlPacket, buffer.data(), sizeof(SendCabinControlPacket));
-		/*std::cout << "command: " << commonSendPacket->_sendCabinControlPacket.command << '\n';
-		std::cout << "seatHeight: " << commonSendPacket->_sendCabinControlPacket.seatHeight << '\n';*/
+		//std::cout << "command: " << commonSendPacket->_sendCabinControlPacket.command << '\n';
+		//std::cout << "seatHeight: " << commonSendPacket->_sendCabinControlPacket.seatHeight << '\n';
 	}
 	catch (const std::exception& e)
 	{
@@ -1052,7 +1052,8 @@ void CheckConnectionCore::sendLoop()
 		std::cout << "motionErrorLevel:" << commonRecvPacket->_recvSteerPacket.status << '\n';
 		std::cout << "motionErrorCode:" << commonRecvPacket->_recvSteerPacket.status << '\n';*/
 
-		commonSendPacket->_sendCheckConnectionPacket.handleStatus = commonRecvPacket->_recvSteerPacket.steerAngle;
+		commonSendPacket->_sendCheckConnectionPacket.handleStatus = commonRecvPacket->_recvSteerPacket.status;
+		commonSendPacket->_sendCheckConnectionPacket.steerAngle = commonRecvPacket->_recvSteerPacket.steerAngle;
 		commonSendPacket->_sendCheckConnectionPacket.cabinControlStatus = commonRecvPacket->_recvCabinControlPacket.status;
 		commonSendPacket->_sendCheckConnectionPacket.cabinControlDigitalInput = commonRecvPacket->_recvCabinControlPacket.digitalInput;
 		commonSendPacket->_sendCheckConnectionPacket.cabinSwitchAccPedal = commonRecvPacket->_recvCabinSwitchPacket.ACCpedal;

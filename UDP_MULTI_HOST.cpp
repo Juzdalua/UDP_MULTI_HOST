@@ -8,16 +8,12 @@ int main()
 	try
 	{
 		Utils::EnvInit();
-
-		Utils::LoadCSVFiles(1);
 	}
 	catch (const std::exception& e)
 	{
 		Utils::LogError("Main env init error: " + std::string(e.what()), "main");
 		return 0;
 	}
-
-	return 0;
 
 	std::vector<std::shared_ptr<Core>> cores;
 

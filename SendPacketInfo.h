@@ -166,6 +166,7 @@ struct SendTimemachinePacket {
 #pragma pack(push, 1)
 struct SendCheckConnectionPacket {
 	unsigned __int32 handleStatus;
+	float steerAngle;
 	unsigned __int16 cabinControlStatus;
 	unsigned __int16 cabinControlDigitalInput;
 	unsigned char cabinSwitchAccPedal;
